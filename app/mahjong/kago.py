@@ -11,41 +11,54 @@ module_dir = os.path.dirname(__file__)
 
 
 class Kago(Player):
-    DAHAI_NETWORK = L.Classifier(CNN())
-    serializers.load_npz(os.path.join(module_dir, 'dahai_network.npz'), DAHAI_NETWORK)
+    DAHAI_NETWORK = L.Classifier(CNN(n_output=34))
+    serializers.load_npz(os.path.join(module_dir, 'networks/dahai.npz'), DAHAI_NETWORK)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.type = 'kago'
 
-    def dahai(self):
+    def input(self):
+        # 手牌
         tehai = [0] * 34
         for pai in self.tehai:
             tehai[pai//4] += 1
-
+        # 河
         kawa = [[0] * 34 for _ in range(4)]
         for i, who in enumerate(self.prange()):
             for pai in self.game.players[who].kawa:
                 kawa[who][pai//4] += 1
-
+        # 副露
         huro = [[0] * 34 for _ in range(4)]
+        # 最後の打牌
+        last_dahai = [1 if self.game.last_dahai == i else 0 for i in range(34)]
 
         row = []
         row += tehai
         for i in range(4):
             row += kawa[i]
+        for i in range(4):
             row += huro[i]
+        row += last_dahai
 
         x = []
-        for i in range(9):
+        for i in range(len(row) // 34):
             xx = []
             for j in range(34):
                 xx.append([1 if row[i * 34 + j] >= k else 0 for k in range(1, 5)])
             x.append(xx)
 
         x = np.array([x], np.float32)
+        return x
+
+    def dahai(self):
+        x = self.input()
         y = Kago.DAHAI_NETWORK.predictor(x)[0].array
         mk, mv = -1, -float('inf')
+        tehai = [0] * 34
+        for pai in self.tehai:
+            tehai[pai//4] += 1
+
         for i in range(34):
             if tehai[i] > 0 and y[i] > mv:
                 mk, mv = i, y[i]

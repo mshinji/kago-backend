@@ -80,6 +80,9 @@ class Game():
             for player in self.players:
                 player.tsumo(self.yama.pop())
 
+        # 最後の打牌
+        self.last_dahai = -1
+
         # 状態
         self.state = Game.TSUMO_STATE
 
@@ -117,7 +120,6 @@ class Game():
         # 打牌受信状態
         elif self.state == Game.DAHAI_STATE:
             if self.players[self.teban].type == 'human' and dahai is None:
-                print('NONE!!!')
                 self.skip()
                 return
 
@@ -131,6 +133,7 @@ class Game():
                 else:
                     player.other_dahai(dahai)
 
+            self.last_dahai = dahai
             self.state = Game.TSUMO_STATE
 
     def skip(self):

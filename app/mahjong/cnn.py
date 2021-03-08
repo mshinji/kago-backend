@@ -4,7 +4,7 @@ from chainer import Chain
 
 
 class CNN(Chain):
-    def __init__(self):
+    def __init__(self, n_output):
         super(CNN, self).__init__()
         with self.init_scope():
             ksize = (5, 2)
@@ -15,7 +15,7 @@ class CNN(Chain):
             self.bnorm2 = L.BatchNormalization(100)
             self.bnorm3 = L.BatchNormalization(100)
             self.fc1 = L.Linear(None, 300)
-            self.fc2 = L.Linear(None, 34)
+            self.fc2 = L.Linear(None, n_output)
 
     def __call__(self, x):
         # 1層

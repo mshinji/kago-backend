@@ -49,7 +49,6 @@ class MahjongConsumer(AsyncWebsocketConsumer):
             await self.next()
 
         elif data_type == 'dahai' and self.game.state == Game.DAHAI_STATE and self.game.teban == self.player.position:
-            print('FUCK YOU!!!!', data.get('dahai'))
             await self.next(dahai=data['body']['dahai'])
 
     def prange(self):
