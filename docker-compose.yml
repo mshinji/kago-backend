@@ -5,6 +5,8 @@ services:
     command: python3 manage.py runserver 0.0.0.0:8000
     depends_on:
       - redis
+    environment:
+      - REDIS_URL
     ports:
       - 8000:8000
     tty: true
