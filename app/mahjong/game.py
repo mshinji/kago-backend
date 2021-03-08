@@ -88,14 +88,18 @@ class Game():
 
     # ルーチーン記述
     def next(self, dahai):
+        # 行動のリセット
+        for player in self.players:
+            player.reset_action()
+
         # ツモ状態
         if self.state == Game.TSUMO_STATE:
             self.teban = (self.teban + 1) % 4
             tsumo = self.yama.pop()
+            self.players[self.teban].tsumo(tsumo)
 
             for i, player in enumerate(self.players):
                 if i == self.teban:
-                    player.tsumo(tsumo)
                     player.my_tsumo(tsumo)
                 else:
                     player.other_tsumo(tsumo)
