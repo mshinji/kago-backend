@@ -7,8 +7,6 @@ from mahjong.human import Human
 from mahjong.kago import Kago
 from channels.generic.websocket import AsyncWebsocketConsumer
 
-# MahjongConsumerクラス: WebSocketからの受け取ったものを処理するクラス
-
 
 class MahjongConsumer(AsyncWebsocketConsumer):
     rooms = None
@@ -19,7 +17,7 @@ class MahjongConsumer(AsyncWebsocketConsumer):
             MahjongConsumer.rooms = {}
 
     def generate_token(self):
-        randlst = [random.choice(string.ascii_letters + string.digits) for i in range(20)]
+        randlst = [random.choice(string.ascii_letters + string.digits) for i in range(30)]
         return ''.join(randlst)
 
     async def connect(self):
@@ -36,6 +34,9 @@ class MahjongConsumer(AsyncWebsocketConsumer):
             self.player = self.game.find_player(0)
 
         print('receive:', data)
+        if hasattr(self, 'game') and hasattr(self.game, 'state'):
+            print('state:', self.game.state)
+
         if data_type == 'ready':
             await self.start_game(data['mode'])
 
@@ -48,8 +49,14 @@ class MahjongConsumer(AsyncWebsocketConsumer):
         elif data_type == 'next':
             await self.next()
 
-        elif data_type == 'dahai' and self.game.state == Game.DAHAI_STATE and self.game.teban == self.player.position:
-            await self.next(dahai=data['body']['dahai'])
+        elif data_type == 'ankan' and self.game.teban == self.player.position \
+                and self.game.state == Game.KAN_STATE:
+            print('ANKANAKANAKKANKDSADJADKN')
+            await self.next(ankan=data['body']['ankan'])
+
+        elif data_type == 'dahai' and self.game.teban == self.player.position \
+                and (self.game.state == Game.KAN_STATE or self.game.state == Game.DAHAI_STATE):
+            await self.next(dahai=data['body']['dahai'], state=Game.DAHAI_STATE)
 
     def prange(self):
         return [i % 4 for i in range(self.player.position, self.player.position + 4)]
@@ -70,6 +77,10 @@ class MahjongConsumer(AsyncWebsocketConsumer):
             else:
                 kawas.append(self.game.make_dummies(self.game.players[i].kawa))
 
+        huros = []
+        for i in self.prange():
+            huros.append(self.game.players[self.player.position].huro)
+
         dora = self.game.dora[:self.game.n_dora] + self.game.make_dummies(self.game.dora[self.game.n_dora:5])
 
         scores = [self.game.scores[i] for i in self.prange()]
@@ -80,6 +91,7 @@ class MahjongConsumer(AsyncWebsocketConsumer):
         return {
             'tehais': tehais,
             'kawas': kawas,
+            'huros': huros,
             'kyoku': self.game.kyoku,
             'honba': self.game.honba,
             'kyotaku': self.game.kyotaku,
@@ -133,7 +145,7 @@ class MahjongConsumer(AsyncWebsocketConsumer):
         ]
         await self.send(text_data=json.dumps(data))
 
-    async def next(self, dahai=None):
-        self.game.next(dahai)
+    async def next(self, ankan=None, dahai=None, state=None):
+        self.game.next(ankan=ankan, dahai=dahai, state=state)
 
-        await self.send(text_data=json.dumps(self.player.last_action))
+        await self.send(text_data=json.dumps(self.player.actions))

@@ -6,9 +6,8 @@ class Game():
     VISIBLE_MODE = 1
 
     TSUMO_STATE = 0
-    BEFORE_RICHI_KAN_STATE = 1
-    RICHI_KAN_STATE = 2
-    BEFORE_DAHAI_STATE = 3
+    KAN_STATE = 1
+    RINSHAN_TSUMO_STATE = 2
     DAHAI_STATE = 4
 
     def __init__(self):
@@ -61,8 +60,13 @@ class Game():
         shuffle(self.dummy)
 
         # 山生成
-        self.yama = [i for i in range(136)]
+        self.yama = [i for i in range(4 * 4 * 4, 136)]
         shuffle(self.yama)
+        x = []
+        for i in range(0, 4 * 4):
+            for j in range(0, 4 * 4, 4):
+                x.append(i + j)
+        self.yama = self.yama + x
 
         # ドラ生成
         self.dora = []
@@ -87,47 +91,72 @@ class Game():
         self.state = Game.TSUMO_STATE
 
     # ルーチーン記述
-    def next(self, dahai):
+    def next(self, ankan=None, dahai=None, state=None):
         # 行動のリセット
         for player in self.players:
-            player.reset_action()
+            player.reset_actions()
 
-        # ツモ状態
+        # stateのセット
+        if state is not None:
+            self.state = state
+
+        # ツモ送信
         if self.state == Game.TSUMO_STATE:
             self.teban = (self.teban + 1) % 4
             tsumo = self.yama.pop()
             self.players[self.teban].tsumo(tsumo)
 
+            # ツモ送信
             for i, player in enumerate(self.players):
                 if i == self.teban:
                     player.my_tsumo(tsumo)
                 else:
                     player.other_tsumo(tsumo)
 
-            # self.state = Game.BEFORE_RICHI_KAN_STATE
-            self.state = Game.DAHAI_STATE
+            # カン通知送信
+            self.players[self.teban].my_before_ankan()
 
-        # リーチ・カン送信状態
-        elif self.state == Game.BEFORE_RICHI_KAN_STATE:
+            self.state = Game.KAN_STATE
+
+        # カン受信状態
+        elif self.state == Game.KAN_STATE:
+            print('ankan:', ankan)
+            print('type:', self.players[self.teban].type)
+            # 人間なら引数でカンを取得 & 検証
+            if self.players[self.teban].type == 'human' and \
+                    (ankan is None or not self.players[self.teban].can_ankan(ankan)):
+                return
+            print('UNCHI!')
+
+            # AIならメソッドで打牌を取得
+            if self.players[self.teban].type == 'kago':
+                ankan = self.players[self.teban].ankan()
+                if ankan is None:
+                    self.state = Game.DAHAI_STATE
+                    self.skip()
+                    return
+            print('UNCHIUNCHI!!')
             for i, player in enumerate(self.players):
                 if i == self.teban:
-                    player.my_before_dahai()
+                    player.my_ankan(ankan)
                 else:
-                    player.other_before_dahai()
+                    player.other_ankan(ankan)
 
-            self.state = Game.RICHI_KAN_STATE
+            self.state = Game.DAHAI_STATE
 
-        # リーチ・カン受信状態
-        elif self.state == Game.RICHI_KAN_STATE:
-            self.state = Game.BEFORE_DAHAI_STATE
+        # リンシャンツモ送信状態
+        elif self.state == Game.RINSHAN_TSUMO_STATE:
+            self.state = Game.KAN_STATE
 
         # 打牌受信状態
         elif self.state == Game.DAHAI_STATE:
-            if self.players[self.teban].type == 'human' and dahai is None:
-                self.skip()
+            print('DAHAI_STATE!!!!!!!')
+            # 人間なら引数で打牌を取得 & 検証
+            if self.players[self.teban].type == 'human' and \
+                    (dahai is None or self.players[self.teban].can_dahai(dahai)):
                 return
 
-            # 人間なら引数, AIならメソッドで打牌を取得
+            # AIならメソッドで打牌を取得
             if self.players[self.teban].type == 'kago':
                 dahai = self.players[self.teban].dahai()
 
@@ -142,6 +171,6 @@ class Game():
 
     def skip(self):
         for player in self.players:
-            player.last_action = [{
+            player.actions.append({
                 'type': 'skip'
-            }]
+            })

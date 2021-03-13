@@ -51,6 +51,9 @@ class Kago(Player):
         x = np.array([x], np.float32)
         return x
 
+    def ankan(self):
+        return None
+
     def dahai(self):
         x = self.input()
         y = Kago.DAHAI_NETWORK.predictor(x)[0].array
