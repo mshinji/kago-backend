@@ -18,16 +18,16 @@ class Kago(Player):
         super().__init__(*args, **kwargs)
         self.type = 'kago'
 
-    def input(self):
+    def make_input(self):
         # 手牌
         tehai = [0] * 34
         for pai in self.tehai:
             tehai[pai//4] += 1
         # 河
         kawa = [[0] * 34 for _ in range(4)]
-        for i, who in enumerate(self.prange()):
-            for pai in self.game.players[who].kawa:
-                kawa[who][pai//4] += 1
+        for i, (_, player) in enumerate(self.prange()):
+            for pai in player.kawa:
+                kawa[i][pai//4] += 1
         # 副露
         huro = [[0] * 34 for _ in range(4)]
         # 最後の打牌
@@ -51,11 +51,11 @@ class Kago(Player):
         x = np.array([x], np.float32)
         return x
 
-    def ankan(self):
+    def decide_ankan(self):
         return None
 
-    def dahai(self):
-        x = self.input()
+    def decide_dahai(self):
+        x = self.make_input()
         y = Kago.DAHAI_NETWORK.predictor(x)[0].array
         mk, mv = -1, -float('inf')
         tehai = [0] * 34
