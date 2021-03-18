@@ -90,8 +90,6 @@ class MahjongConsumer(WebsocketConsumer):
         self.send(text_data=json.dumps(data))
 
     def routine(self):
-        print('In Routine')
         for r in self.game.routine():
             self.send(text_data=json.dumps(self.player.actions))
-            sleep(0.5)
-        print('Out Routine')
+            sleep(0.2)

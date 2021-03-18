@@ -24,6 +24,7 @@ class Player():
         for i in ankan:
             self.tehai.pop(self.tehai.index(i))
         self.huro.append(ankan)
+        self.game.n_ankan += 1
 
     def reset_actions(self):
         self.actions = []
@@ -74,7 +75,7 @@ class Player():
             print('手番じゃない')
             return False
         if self.game.state != Game.KAN_STATE and self.game.state != Game.DAHAI_STATE:
-            print('ステートがカンでも打牌じゃない')
+            print('ステートがカンでも打牌でもない')
             return False
         if dahai not in self.tehai:
             print('手牌に打牌する牌がない')
@@ -89,6 +90,9 @@ class Player():
         if self.game.state != Game.KAN_STATE:
             print('ステートがカンじゃない')
             return False
+        if self.game.n_kan >= 4:
+            print('カンの個数が4以上')
+            return False
         if len(ankan) != 4:
             print('牌の数が4つじゃない')
             return False
@@ -96,7 +100,7 @@ class Player():
             print('牌番号に同じものがある')
             return False
         if len(set([i // 4 for i in ankan])) != 1:
-            print('牌を4で割った商が全て同じ')
+            print('牌を4で割った商が全て同じじゃない')
             return False
         print('tehai', self.tehai)
         for i in ankan:

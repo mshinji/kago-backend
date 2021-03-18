@@ -102,6 +102,9 @@ class Game():
         # 最後の打牌
         self.last_dahai = -1
 
+        # カンの個数
+        self.n_kan = 0
+
         # 状態
         self.prev_state, self.state = self.state, Game.KYOKU_START_STATE
 
@@ -154,7 +157,6 @@ class Game():
             # ツモ送信状態
             elif self.state == Game.TSUMO_STATE:
                 if self.prev_state != Game.KAN_STATE:
-                    print('TEBANTEBAN!!!!!!!')
                     self.teban = (self.teban + 1) % 4
                 tsumo = self.players[self.teban].tsumo()
 
