@@ -74,7 +74,7 @@ class Player():
         if self.game.teban != self.position:
             print('手番じゃない')
             return False
-        if self.game.state != Game.KAN_STATE and self.game.state != Game.DAHAI_STATE:
+        if self.game.state != Game.NOTICE1_RECIEVE_STATE and self.game.state != Game.DAHAI_STATE:
             print('ステートがカンでも打牌でもない')
             return False
         if dahai not in self.tehai:
@@ -87,7 +87,7 @@ class Player():
         if self.game.teban != self.position:
             print('手番じゃない')
             return False
-        if self.game.state != Game.KAN_NOTICE_STATE and self.game.state != Game.KAN_STATE:
+        if self.game.state != Game.NOTICE1_SEND_STATE and self.game.state != Game.NOTICE1_RECIEVE_STATE:
             print('ステートがカンじゃない')
             return False
         if self.game.n_kan >= 4:
@@ -121,20 +121,20 @@ class Player():
             'body': self.game_info()
         })
 
-    def my_tsumo(self, tsumo):
+    def my_tsumo(self, pai):
         self.actions.append({
             'type': 'my_tsumo',
             'body': {
-                'tsumo': tsumo,
+                'pai': pai,
                 'rest': len(self.game.yama)
             }
         })
 
-    def other_tsumo(self, tsumo):
+    def other_tsumo(self, pai):
         self.actions.append({
             'type': 'other_tsumo',
             'body': {
-                'tsumo': self.game.make_dummy(tsumo),
+                'dummy': self.game.make_dummy(pai),
                 'who': (self.game.teban - self.position) % 4,
                 'rest': len(self.game.yama)
             }
@@ -143,66 +143,80 @@ class Player():
     def my_ankan_notice(self):
         action = {
             'type': 'my_ankan_notice',
-            'body': {'ankan': []}
+            'body': []
         }
 
         for i in range(34):
             if self.can_ankan([i * 4 + j for j in range(4)]):
-                action['body']['ankan'].append({
-                    'pai': [i * 4 + j for j in range(4)],
-                    'dummy': self.game.make_dummies([i * 4 + j for j in range(4)])
+                action['body'].append({
+                    'pais': [i * 4 + j for j in range(4)],
+                    'dummies': self.game.make_dummies([i * 4 + j for j in range(4)])
                 })
 
-        if len(action['body']['ankan']) != 0:
+        if len(action['body']) != 0:
             self.actions.append(action)
 
-    def my_ankan(self, ankan):
+    def my_ankan(self, pais):
         self.actions.append({
             'type': 'my_ankan',
             'body': {
-                'pai': ankan,
-                'dummy': self.game.make_dummies(ankan)
+                'pais': pais,
+                'dummies': self.game.make_dummies(pais)
             }
         })
 
-    def other_ankan(self, ankan):
+    def other_ankan(self, pais):
         self.actions.append({
             'type': 'other_ankan',
             'body': {
-                'pai': ankan,
-                'dummy': self.game.make_dummies(ankan),
+                'pais': pais,
+                'dummies': self.game.make_dummies(pais),
                 'who': (self.game.teban - self.position) % 4,
             }
         })
 
-    def all_open_kan_dora(self, kan_dora):
+    def all_open_kan_dora(self, pai):
         self.actions.append({
             'type': 'all_open_kan_dora',
             'body': {
-                'pai': kan_dora,
-                'dummy': self.game.make_dummy(kan_dora),
+                'pai': pai,
+                'dummy': self.game.make_dummy(pai),
                 'rest': len(self.game.yama)
             }
         })
 
-    def my_dahai(self, dahai):
+    def my_dahai(self, pai):
         self.actions.append({
             'type': 'my_dahai',
             'body': {
-                'dahai': dahai
+                'pai': pai
             }
         })
 
-    def other_dahai(self, dahai):
+    def other_dahai(self, pai):
         self.actions.append({
             'type': 'other_dahai',
             'body': {
-                'dahai': dahai,
-                'dummy': self.game.make_dummy(dahai),
+                'pai': pai,
+                'dummy': self.game.make_dummy(pai),
                 'who': (self.game.teban - self.position) % 4
             }
         })
 
-    # def my_before_huro(self, dahai):
+    # def my_chi_notice(self, dahai):
+    #     action = {
+    #         'type': 'my_chi_notice',
+    #         'body': {'pais': []}
+    #     }
 
-    # def other_before_huro(self, dahai):
+    #     for i in range(34):
+    #         if self.can_chi([i * 4 + j for j in range(4)]):
+    #             action['body']['pais'].append({
+    #                 'pai': [i * 4 + j for j in range(4)],
+    #                 'dummy': self.game.make_dummies([i * 4 + j for j in range(4)])
+    #             })
+
+    #     if len(action['body']['pais']) != 0:
+    #         self.actions.append(action)
+
+        # def other_huro_notice(self, dahai):

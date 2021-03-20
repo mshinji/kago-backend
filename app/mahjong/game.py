@@ -8,10 +8,13 @@ class Game():
     INITIAL_STATE = -100
     KYOKU_START_STATE = -10
     TSUMO_STATE = 0
-    KAN_NOTICE_STATE = 5
-    KAN_STATE = 10
+    # NOTICE1 - リーチ/暗槓/加槓
+    NOTICE1_SEND_STATE = 5
+    NOTICE1_RECIEVE_STATE = 10
     DAHAI_STATE = 20
-    HURO_STATE = 30
+    # NOTICE2 - 明槓/ポン/チー
+    NOTICE2_SEND_STATE = 25
+    NOTICE2_RECIEVE_STATE = 30
 
     def __init__(self):
         self.mode = Game.NORMAL_MODE
@@ -124,7 +127,7 @@ class Game():
                     player.other_ankan(ankan)
                     player.all_open_kan_dora(kan_dora)
 
-            self.prev_state = Game.KAN_STATE
+            self.prev_state = Game.NOTICE1_RECIEVE_STATE
             self.state = Game.TSUMO_STATE
 
     def dahai(self, dahai, player):
@@ -163,7 +166,7 @@ class Game():
 
             # ツモ状態
             elif self.state == Game.TSUMO_STATE:
-                if self.prev_state != Game.KAN_STATE:
+                if self.prev_state != Game.NOTICE1_RECIEVE_STATE:
                     self.teban = (self.teban + 1) % 4
                 tsumo = self.players[self.teban].tsumo()
 
@@ -174,21 +177,22 @@ class Game():
                     else:
                         player.other_tsumo(tsumo)
 
-                self.prev_state, self.state = self.state, Game.KAN_NOTICE_STATE
+                self.prev_state, self.state = self.state, Game.NOTICE1_SEND_STATE
                 yield True
                 continue
 
-            # カン通知状態
-            elif self.state == Game.KAN_NOTICE_STATE:
+            # 副露1(暗槓/加槓)通知状態
+            elif self.state == Game.NOTICE1_SEND_STATE:
                 # カン通知送信
                 self.players[self.teban].my_ankan_notice()
 
-                self.prev_state, self.state = self.state, Game.KAN_STATE
+                self.prev_state = Game.NOTICE1_SEND_STATE
+                self.state = Game.NOTICE1_RECIEVE_STATE
                 yield True
                 continue
 
             # カン受信状態(AIのみ)
-            elif self.state == Game.KAN_STATE:
+            elif self.state == Game.NOTICE1_RECIEVE_STATE:
                 # 人間なら受信を待つ
                 if self.players[self.teban].type == 'human':
                     break
@@ -197,7 +201,9 @@ class Game():
                 if self.players[self.teban].type == 'kago':
                     ankan = self.players[self.teban].decide_ankan()
                     if ankan is None:
-                        self.prev_state, self.state = self.state, Game.DAHAI_STATE
+                        self.prev_state = Game.NOTICE1_RECIEVE_STATE
+                        self.state = Game.DAHAI_STATE
+                        yield True
                         continue
 
                 # 暗槓がある場合
@@ -212,7 +218,8 @@ class Game():
                             player.other_ankan(ankan)
                             player.all_open_kan_dora(kan_dora)
 
-                    self.prev_state, self.state = self.state, Game.TSUMO_STATE
+                    self.prev_state = Game.NOTICE1_RECIEVE_STATE
+                    self.state = Game.TSUMO_STATE
                     yield True
                     continue
 
@@ -230,14 +237,15 @@ class Game():
                 for i, player in enumerate(self.players):
                     if i == self.teban:
                         player.my_dahai(dahai)
-                        # player.my_before_huro(dahai)
+                        # player.my_huro_notice(dahai)
                     else:
                         player.other_dahai(dahai)
-                        # player.other_before_huro(dahai)
+                        # player.other_huro_notice(dahai)
 
-                self.prev_state, self.state = self.state, Game.TSUMO_STATE
+                self.prev_state = Game.DAHAI_STATE
+                self.state = Game.TSUMO_STATE
                 yield True
                 continue
 
-            # 副露受信状態(AIのみ)
-            # elif self.state == Game.HURO_STATE:
+            # 副露2(# 明槓/ポン/チー)通知状態
+            # elif self.state == Game.NOTICE2_SEND_STATE:
