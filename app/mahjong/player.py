@@ -24,7 +24,7 @@ class Player():
         for i in ankan:
             self.tehai.pop(self.tehai.index(i))
         self.huro.append(ankan)
-        self.game.n_ankan += 1
+        self.game.n_kan += 1
 
     def reset_actions(self):
         self.actions = []
@@ -87,7 +87,7 @@ class Player():
         if self.game.teban != self.position:
             print('手番じゃない')
             return False
-        if self.game.state != Game.KAN_STATE:
+        if self.game.state != Game.KAN_NOTICE_STATE and self.game.state != Game.KAN_STATE:
             print('ステートがカンじゃない')
             return False
         if self.game.n_kan >= 4:
@@ -108,6 +108,8 @@ class Player():
                 print('手牌に含まれていない牌がある')
                 return False
         return True
+
+    # def can_chi(self, chi):
 
     # アクション記録関数
     def my_start_game(self):
@@ -138,19 +140,14 @@ class Player():
             }
         })
 
-    def my_before_ankan(self):
+    def my_ankan_notice(self):
         action = {
-            'type': 'my_before_ankan',
+            'type': 'my_ankan_notice',
             'body': {'ankan': []}
         }
 
-        x = [0] * 34
-        for t in self.tehai:
-            x[t//4] += 1
-        print(x)
-
         for i in range(34):
-            if x[i] >= 4:
+            if self.can_ankan([i * 4 + j for j in range(4)]):
                 action['body']['ankan'].append({
                     'pai': [i * 4 + j for j in range(4)],
                     'dummy': self.game.make_dummies([i * 4 + j for j in range(4)])
@@ -205,3 +202,7 @@ class Player():
                 'who': (self.game.teban - self.position) % 4
             }
         })
+
+    # def my_before_huro(self, dahai):
+
+    # def other_before_huro(self, dahai):

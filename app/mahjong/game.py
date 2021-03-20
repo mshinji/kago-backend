@@ -5,11 +5,13 @@ class Game():
     NORMAL_MODE = 0
     VISIBLE_MODE = 1
 
-    INITIAL_STATE = -100000000
+    INITIAL_STATE = -100
     KYOKU_START_STATE = -10
     TSUMO_STATE = 0
-    KAN_STATE = 1
-    DAHAI_STATE = 4
+    KAN_NOTICE_STATE = 5
+    KAN_STATE = 10
+    DAHAI_STATE = 20
+    HURO_STATE = 30
 
     def __init__(self):
         self.mode = Game.NORMAL_MODE
@@ -112,6 +114,8 @@ class Game():
         if player.can_ankan(ankan):
             player.ankan(ankan)
             kan_dora = self.open_kan_dora()
+
+            # 暗槓と槓ドラの送信
             for i, player in enumerate(self.players):
                 if i == self.teban:
                     player.my_ankan(ankan)
@@ -126,6 +130,9 @@ class Game():
     def dahai(self, dahai, player):
         if player.can_dahai(dahai):
             player.dahai(dahai)
+            self.last_dahai = dahai
+
+            # 打牌の送信
             for i, player in enumerate(self.players):
                 if i == self.teban:
                     player.my_dahai(dahai)
@@ -154,7 +161,7 @@ class Game():
                 yield True
                 continue
 
-            # ツモ送信状態
+            # ツモ状態
             elif self.state == Game.TSUMO_STATE:
                 if self.prev_state != Game.KAN_STATE:
                     self.teban = (self.teban + 1) % 4
@@ -167,8 +174,14 @@ class Game():
                     else:
                         player.other_tsumo(tsumo)
 
+                self.prev_state, self.state = self.state, Game.KAN_NOTICE_STATE
+                yield True
+                continue
+
+            # カン通知状態
+            elif self.state == Game.KAN_NOTICE_STATE:
                 # カン通知送信
-                self.players[self.teban].my_before_ankan()
+                self.players[self.teban].my_ankan_notice()
 
                 self.prev_state, self.state = self.state, Game.KAN_STATE
                 yield True
@@ -211,12 +224,20 @@ class Game():
 
                 # AIなら打牌判断を取得
                 dahai = self.players[self.teban].decide_dahai()
+                self.last_dahai = dahai
+
+                # 打牌と副露通知の送信
                 for i, player in enumerate(self.players):
                     if i == self.teban:
                         player.my_dahai(dahai)
+                        # player.my_before_huro(dahai)
                     else:
                         player.other_dahai(dahai)
+                        # player.other_before_huro(dahai)
 
                 self.prev_state, self.state = self.state, Game.TSUMO_STATE
                 yield True
                 continue
+
+            # 副露受信状態(AIのみ)
+            # elif self.state == Game.HURO_STATE:
