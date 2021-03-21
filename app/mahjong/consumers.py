@@ -1,7 +1,6 @@
 import json
 import random
 import string
-from time import time, sleep
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 from mahjong.game import Game
@@ -91,7 +90,6 @@ class MahjongConsumer(AsyncWebsocketConsumer):
         await self.send(data)
 
     async def routine(self):
-        print('ROUTINE')
         for r in self.game.routine():
             if len(self.player.actions) != 0:
                 await self.send(self.player.actions)
