@@ -119,6 +119,11 @@ class Game():
         # カンの個数
         self.n_kan = 0
 
+        # 通知
+        self.minkan_dicisions = dict()
+        self.pon_dicisions = dict()
+        self.chi_dicisions = dict()
+
         # 状態
         self.prev_state, self.state = self.state, Game.KYOKU_START_STATE
 
@@ -141,17 +146,7 @@ class Game():
 
     def chi(self, pais, pai, player):
         if player.can_chi(pais, pai):
-            player.chi(pais, pai)
-
-            # チーの送信
-            for i, player in enumerate(self.players):
-                if i == self.teban:
-                    player.my_chi(pais, pai)
-                else:
-                    player.other_chi(pais, pai)
-
-            self.prev_state = Game.NOTICE2_RECIEVE_STATE
-            self.state = Game.DAHAI_STATE
+            self.chi_dicisions[player.position] = [pais, pai]
 
     def dahai(self, dahai, player):
         if player.can_dahai(dahai):
@@ -165,7 +160,7 @@ class Game():
                     player.other_dahai(dahai)
 
             self.prev_state = self.DAHAI_STATE
-            self.state = Game.TSUMO_STATE
+            self.state = Game.NOTICE2_SEND_STATE
 
     def routine(self):
         while True:
@@ -269,49 +264,51 @@ class Game():
 
             # 通知2(明槓/ポン/チー)送信状態
             elif self.state == Game.NOTICE2_SEND_STATE:
-                # 通知したかどうかを記録
-                self.chi_noticed = False
+                # 選択を格納
+                self.pon_dicisions = dict()
+                self.chi_dicisions = dict()
 
                 # チー通知送信
-                self.players[(self.teban + 1) % 4].my_chi_notice()
+                for player in self.prange():
+                    # player.my_pon_notice()
+                    player.my_chi_notice()
+
+                # AIの選択を格納
+                for player in self.prange():
+                    if player.type == 'kago' and player.position not in self.chi_dicisions:
+                        self.chi_dicisions[player.position] = [player.decide_chi(), self.last_dahai]
 
                 self.prev_state = Game.NOTICE2_SEND_STATE
                 self.state = Game.NOTICE2_RECIEVE_STATE
                 yield True
                 continue
 
-            # 通知2受信状態(AIのみ)
+            # 通知2受信状態
             elif self.state == Game.NOTICE2_RECIEVE_STATE:
-                # チーが通知されていない場合
-                if not self.chi_noticed:
-                    self.prev_state = Game.NOTICE2_RECIEVE_STATE
-                    self.state = Game.TSUMO_STATE
-                    yield True
-                    continue
-
-                # 人間なら受信を待つ
-                if self.players[(self.teban + 1) % 4].type == 'human':
+                if len(self.chi_dicisions) != 4:
                     break
 
-                # AIならチー判断を取得
-                if self.players[(self.teban + 1) % 4].type == 'kago':
-                    chi = self.players[(self.teban + 1) % 4].decide_chi()
-                    if chi is None:
-                        self.prev_state = Game.NOTICE2_RECIEVE_STATE
-                        self.state = Game.TSUMO_STATE
-                        yield True
-                        continue
+                flag = False
 
-                # チーがある場合
-                if chi != []:
-                    self.players[(self.teban + 1) % 4].chi(chi, self.last_dahai)
-                    for i, player in enumerate(self.players):
-                        if i == self.teban:
-                            player.my_chi(chi, self.last_dahai)
-                        else:
-                            player.other_chi(chi, self.last_dahai)
+                # チー決定
+                for who, (pais, pai) in self.chi_dicisions.items():
+                    if pais is not None:
+                        flag = True
+                        self.players[who].chi(pais, pai)
+                        for i, player in enumerate(self.players):
+                            if i == self.teban:
+                                player.my_chi(pais, pai)
+                            else:
+                                player.other_chi(pais, pai)
+                        break
 
+                if flag:
                     self.prev_state = Game.NOTICE2_RECIEVE_STATE
                     self.state = Game.DAHAI_STATE
                     yield True
                     continue
+
+                self.prev_state = Game.NOTICE2_RECIEVE_STATE
+                self.state = Game.TSUMO_STATE
+                yield True
+                continue

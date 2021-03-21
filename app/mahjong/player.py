@@ -35,6 +35,11 @@ class Player():
         self.huro.append(pais)
         self.game.teban = self.position
 
+    def cancel(self):
+        self.game.minkan_dicisions[self.position] = [None, None]
+        self.game.pon_dicisions[self.position] = [None, None]
+        self.game.chi_dicisions[self.position] = [None, None]
+
     def reset_actions(self):
         self.actions = []
 
@@ -125,7 +130,7 @@ class Player():
             # print('ステート異常')
             return False
         if pai not in pais:
-            # print('鳴いた牌が含めれていない')
+            # print('鳴いた牌が含まれていない')
             return False
         if self.game.last_dahai != pai:
             # print('鳴いた牌が最後の打牌と不一致')
@@ -139,7 +144,7 @@ class Player():
                 return False
         pais.sort()
         if pais[2] // 4 - pais[1] // 4 != 1 or pais[1] // 4 - pais[0] // 4 != 1:
-            # print('連続していない')
+            # print('連続していない', pais, pai)
             return False
         if pais[0] >= 4 * 27:
             # print('字牌')
@@ -282,12 +287,13 @@ class Player():
         for i, j in combinations(tehai, 2):
             pais = [self.game.last_dahai, i, j]
             if self.can_chi(pais, self.game.last_dahai):
-                self.game.chi_noticed = True
                 action['body'].append({
                     'pai': self.game.last_dahai,
                     'pais': pais,
                     'dummies': self.game.make_dummies(pais)
                 })
 
-        if len(action['body']) != 0:
+        if len(action['body']) == 0:
+            self.game.chi_dicisions[self.position] = [None, None]
+        else:
             self.actions.append(action)

@@ -89,7 +89,7 @@ class Kago(Player):
                             mk, mv = [last_dahai, a, b], y[i]
                             break
 
-        print('KAGO CHI', y)
+        print('KAGO CHI', y, mk, last_dahai)
         return mk
 
     def decide_dahai(self):
