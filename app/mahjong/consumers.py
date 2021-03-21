@@ -1,68 +1,79 @@
 import json
 import random
 import string
-from time import sleep
+from time import time, sleep
 
-from channels.generic.websocket import WebsocketConsumer
-
+from channels.generic.websocket import AsyncWebsocketConsumer
 from mahjong.game import Game
 from mahjong.human import Human
 from mahjong.kago import Kago
 
 
-class MahjongConsumer(WebsocketConsumer):
+class MahjongConsumer(AsyncWebsocketConsumer):
     rooms = None
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if MahjongConsumer.rooms is None:
-            MahjongConsumer.rooms = {}
-
-    def generate_token(self):
+    async def generate_token(self):
+        print('GENERATE_TOKEN')
         randlst = [random.choice(string.ascii_letters + string.digits) for i in range(30)]
         return ''.join(randlst)
 
-    def connect(self):
-        self.accept()
+    async def connect(self):
+        if MahjongConsumer.rooms is None:
+            MahjongConsumer.rooms = {}
+        print('CONNECT')
+        await self.accept()
 
-    def disconnect(self, close_code):
-        self.close()
+    async def disconnect(self, close_code):
+        print('DISCONNECT')
+        await self.close()
 
-    def send(self, text_data):
-        data = json.loads(text_data)
-        print('send', data)
-        super().send(text_data=text_data)
+    async def send(self, data):
+        print('SEND')
+        data = json.dumps(data)
+        # print('send', data)
+        await super().send(text_data=data)
 
-    def receive(self, text_data):
+    async def receive(self, text_data):
+        print('RECIEVE')
+        start_time = time()
         data = json.loads(text_data)
         data_type = data['type']
         if 'token' in data and data['token'] in MahjongConsumer.rooms:
             self.game = MahjongConsumer.rooms.get(data.get('token'))
             self.player = self.game.find_player(0)
 
-        print('receive:', data)
+        # print('receive:', data)
         # if hasattr(self, 'game') and hasattr(self.game, 'state'):
-        #     print('state:', self.game.state)
+        #     ##### print('state:', self.game.state)
 
         if data_type == 'ready':
-            self.start_game(data['mode'])
-            self.routine()
+            await self.start_game(data['mode'])
+            await self.routine()
 
         elif data_type == 'ankan':
-            self.game.ankan(data['body']['ankan'], self.player)
-            self.send(text_data=json.dumps(self.player.actions))
-            self.routine()
+            self.game.ankan(data['body']['pais'], self.player)
+            await self.send(self.player.actions)
+            await self.routine()
+
+        elif data_type == 'chi':
+            self.game.chi(data['body']['pais'], data['body']['pai'], self.player)
+            await self.send(self.player.actions)
+            await self.routine()
 
         elif data_type == 'dahai':
-            self.game.dahai(data['body']['dahai'], self.player)
-            self.send(text_data=json.dumps(self.player.actions))
-            self.routine()
+            self.game.dahai(data['body']['pai'], self.player)
+            await self.send(self.player.actions)
+            await self.routine()
+
+        end_time = time()
+        print('TIME:', end_time - start_time)
 
     # start_gameだけはconsumerで
-    def start_game(self, mode):
+    async def start_game(self, mode):
+        print('START_GAME')
         # GameにRoomに登録
         self.game = Game()
-        self.token = self.generate_token()
+        self.token = await self.generate_token()
         MahjongConsumer.rooms[self.token] = self.game
 
         # GameにPlayerを登録
@@ -87,9 +98,11 @@ class MahjongConsumer(WebsocketConsumer):
                 }
             }
         ]
-        self.send(text_data=json.dumps(data))
+        await self.send(data)
 
-    def routine(self):
+    async def routine(self):
+        print('ROUTINE')
         for r in self.game.routine():
-            self.send(text_data=json.dumps(self.player.actions))
-            sleep(0.2)
+            if len(self.player.actions) != 0:
+                await self.send(self.player.actions)
+                # sleep(0.2)

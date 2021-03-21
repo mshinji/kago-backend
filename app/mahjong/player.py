@@ -1,4 +1,5 @@
 from .game import Game
+from itertools import combinations
 
 
 class Player():
@@ -19,12 +20,20 @@ class Player():
     def dahai(self, pai):
         self.tehai.pop(self.tehai.index(pai))
         self.kawa.append(pai)
+        self.game.last_dahai = pai
 
     def ankan(self, ankan):
         for i in ankan:
             self.tehai.pop(self.tehai.index(i))
         self.huro.append(ankan)
         self.game.n_kan += 1
+
+    def chi(self, pais, pai):
+        for i in pais:
+            if i != pai:
+                self.tehai.pop(self.tehai.index(i))
+        self.huro.append(pais)
+        self.game.teban = self.position
 
     def reset_actions(self):
         self.actions = []
@@ -72,44 +81,77 @@ class Player():
     # アクション判定関数
     def can_dahai(self, dahai):
         if self.game.teban != self.position:
-            print('手番じゃない')
+            # print('手番じゃない')
             return False
         if self.game.state != Game.NOTICE1_RECIEVE_STATE and self.game.state != Game.DAHAI_STATE:
-            print('ステートがカンでも打牌でもない')
+            # print('ステートがカンでも打牌でもない')
             return False
         if dahai not in self.tehai:
-            print('手牌に打牌する牌がない')
+            # print('手牌に打牌する牌がない')
             return False
 
         return True
 
     def can_ankan(self, ankan):
         if self.game.teban != self.position:
-            print('手番じゃない')
+            # print('手番じゃない')
             return False
         if self.game.state != Game.NOTICE1_SEND_STATE and self.game.state != Game.NOTICE1_RECIEVE_STATE:
-            print('ステートがカンじゃない')
+            # print('ステートがカンじゃない')
             return False
         if self.game.n_kan >= 4:
-            print('カンの個数が4以上')
+            # print('カンの個数が4以上')
             return False
         if len(ankan) != 4:
-            print('牌の数が4つじゃない')
+            # print('牌の数が4つじゃない')
             return False
         if len(set(ankan)) != 4:
-            print('牌番号に同じものがある')
+            # print('牌番号に同じものがある')
             return False
         if len(set([i // 4 for i in ankan])) != 1:
-            print('牌を4で割った商が全て同じじゃない')
+            # print('牌を4で割った商が全て同じじゃない')
             return False
-        print('tehai', self.tehai)
         for i in ankan:
             if i not in self.tehai:
-                print('手牌に含まれていない牌がある')
+                # print('手牌に含まれていない牌がある')
                 return False
         return True
 
-    # def can_chi(self, chi):
+    def can_chi(self, pais, pai):
+        if (self.game.teban + 1) % 4 != self.position:
+            # print('次の手番じゃない')
+            return False
+        if self.game.state != Game.NOTICE2_SEND_STATE and self.game.state != Game.NOTICE2_RECIEVE_STATE:
+            # print('ステート異常')
+            return False
+        if pai not in pais:
+            # print('鳴いた牌が含めれていない')
+            return False
+        if self.game.last_dahai != pai:
+            # print('鳴いた牌が最後の打牌と不一致')
+            return False
+        if len(pais) != 3:
+            # print('牌の数が3つじゃない')
+            return False
+        for i in range(3):
+            if pais[i] != pai and pais[i] not in self.tehai:
+                # print('手牌に含まれていない牌がある')
+                return False
+        pais.sort()
+        if pais[2] // 4 - pais[1] // 4 != 1 or pais[1] // 4 - pais[0] // 4 != 1:
+            # print('連続していない')
+            return False
+        if pais[0] >= 4 * 27:
+            # print('字牌')
+            return False
+        if pais[0] // (4 * 9) != pais[2] // (4 * 9):
+            # print('複数の種類の牌がある')
+            return False
+        if len(set(pais)) != 3:
+            # print('牌番号に同じものがある')
+            return False
+        print('chi', pais)
+        return True
 
     # アクション記録関数
     def my_start_game(self):
@@ -175,6 +217,27 @@ class Player():
             }
         })
 
+    def my_chi(self, pais, pai):
+        self.actions.append({
+            'type': 'my_chi',
+            'body': {
+                'pai': pai,
+                'pais': pais,
+                'dummies': self.game.make_dummies(pais)
+            }
+        })
+
+    def other_chi(self, pais, pai):
+        self.actions.append({
+            'type': 'other_chi',
+            'body': {
+                'pai': pai,
+                'pais': pais,
+                'dummies': self.game.make_dummies(pais),
+                'who': (self.game.teban - self.position) % 4,
+            }
+        })
+
     def all_open_kan_dora(self, pai):
         self.actions.append({
             'type': 'all_open_kan_dora',
@@ -203,20 +266,28 @@ class Player():
             }
         })
 
-    # def my_chi_notice(self, dahai):
-    #     action = {
-    #         'type': 'my_chi_notice',
-    #         'body': {'pais': []}
-    #     }
+    def my_chi_notice(self):
+        action = {
+            'type': 'my_chi_notice',
+            'body': []
+        }
 
-    #     for i in range(34):
-    #         if self.can_chi([i * 4 + j for j in range(4)]):
-    #             action['body']['pais'].append({
-    #                 'pai': [i * 4 + j for j in range(4)],
-    #                 'dummy': self.game.make_dummies([i * 4 + j for j in range(4)])
-    #             })
+        tmp = set(map(self.game.make_simple, self.tehai))
+        tehai = []
+        for i in self.tehai:
+            if self.game.make_simple(i) in tmp:
+                tehai.append(i)
+                tmp.remove(self.game.make_simple(i))
 
-    #     if len(action['body']['pais']) != 0:
-    #         self.actions.append(action)
+        for i, j in combinations(tehai, 2):
+            pais = [self.game.last_dahai, i, j]
+            if self.can_chi(pais, self.game.last_dahai):
+                self.game.chi_noticed = True
+                action['body'].append({
+                    'pai': self.game.last_dahai,
+                    'pais': pais,
+                    'dummies': self.game.make_dummies(pais)
+                })
 
-        # def other_huro_notice(self, dahai):
+        if len(action['body']) != 0:
+            self.actions.append(action)

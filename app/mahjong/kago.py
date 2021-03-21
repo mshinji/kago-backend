@@ -1,4 +1,5 @@
 import os
+from itertools import product
 
 import chainer.links as L
 import numpy as np
@@ -12,7 +13,9 @@ module_dir = os.path.dirname(__file__)
 
 class Kago(Player):
     DAHAI_NETWORK = L.Classifier(CNN(n_output=34))
+    CHI_NETWORK = L.Classifier(CNN(n_output=4))
     serializers.load_npz(os.path.join(module_dir, 'networks/dahai.npz'), DAHAI_NETWORK)
+    serializers.load_npz(os.path.join(module_dir, 'networks/chi.npz'), CHI_NETWORK)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -54,23 +57,51 @@ class Kago(Player):
     def decide_ankan(self):
         return None
 
+    def decide_chi(self):
+        x = self.make_input()
+        y = Kago.CHI_NETWORK.predictor(x)[0].array
+        mk, mv = None, -float('inf')
+
+        last_dahai = self.game.last_dahai
+        for i in range(4):
+            if y[i] > mv:
+                if i == 0:
+                    mk, mv = None, y[i]
+                if i == 1:
+                    p1 = (last_dahai // 4 + 1) * 4
+                    p2 = (last_dahai // 4 + 2) * 4
+                    for a, b in product(range(p1, p1 + 4), range(p2, p2 + 4)):
+                        if self.can_chi([last_dahai, a, b], last_dahai):
+                            mk, mv = [last_dahai, a, b], y[i]
+                            break
+                if i == 2:
+                    p1 = (last_dahai // 4 - 1) * 4
+                    p2 = (last_dahai // 4 + 1) * 4
+                    for a, b in product(range(p1, p1 + 4), range(p2, p2 + 4)):
+                        if self.can_chi([last_dahai, a, b], last_dahai):
+                            mk, mv = [last_dahai, a, b], y[i]
+                            break
+                if i == 3:
+                    p1 = (last_dahai // 4 - 2) * 4
+                    p2 = (last_dahai // 4 - 1) * 4
+                    for a, b in product(range(p1, p1 + 4), range(p2, p2 + 4)):
+                        if self.can_chi([last_dahai, a, b], last_dahai):
+                            mk, mv = [last_dahai, a, b], y[i]
+                            break
+
+        print('KAGO CHI', y)
+        return mk
+
     def decide_dahai(self):
         x = self.make_input()
         y = Kago.DAHAI_NETWORK.predictor(x)[0].array
         mk, mv = -1, -float('inf')
-        tehai = [0] * 34
-        for pai in self.tehai:
-            tehai[pai//4] += 1
 
         for i in range(34):
-            if tehai[i] > 0 and y[i] > mv:
-                mk, mv = i, y[i]
+            if y[i] > mv:
+                for p in range(i * 4 + 3, i * 4 - 1, -1):
+                    if p in self.tehai:
+                        mk, mv = p, y[i]
+                        break
 
-        print('tehai:', tehai)
-        print('result:', mk)
-        for i in range(4):
-            if mk * 4 + i in self.tehai:
-                dahai = self.tehai.pop(self.tehai.index(mk * 4 + i))
-                break
-        self.kawa.append(dahai)
-        return dahai
+        return mk

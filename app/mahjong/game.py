@@ -53,6 +53,15 @@ class Game():
             return original
         return [self.dummy[o] for o in original]
 
+    def make_simple(self, original):
+        if original == 16:
+            return 35
+        if original == 52:
+            return 36
+        if original == 88:
+            return 37
+        return original // 4
+
     def prange(self):
         return [self.players[i % 4] for i in range(self.teban, self.teban + 4)]
 
@@ -80,13 +89,13 @@ class Game():
         shuffle(self.dummy)
 
         # 山生成
-        # self.yama = [i for i in range(136)]
-        # shuffle(self.yama)
-        # カンテスト用山生成
-        self.yama = [i for i in range(4 * 4 * 4, 136)]
+        self.yama = [i for i in range(136)]
         shuffle(self.yama)
-        x = [i for i in range(4 * 4 * 4)]
-        self.yama = self.yama + x
+        # カンテスト用山生成
+        # self.yama = [i for i in range(4 * 4 * 4, 136)]
+        # shuffle(self.yama)
+        # x = [i for i in range(4 * 4 * 4)]
+        # self.yama = self.yama + x
 
         # ドラ生成
         self.dora = []
@@ -130,10 +139,23 @@ class Game():
             self.prev_state = Game.NOTICE1_RECIEVE_STATE
             self.state = Game.TSUMO_STATE
 
+    def chi(self, pais, pai, player):
+        if player.can_chi(pais, pai):
+            player.chi(pais, pai)
+
+            # チーの送信
+            for i, player in enumerate(self.players):
+                if i == self.teban:
+                    player.my_chi(pais, pai)
+                else:
+                    player.other_chi(pais, pai)
+
+            self.prev_state = Game.NOTICE2_RECIEVE_STATE
+            self.state = Game.DAHAI_STATE
+
     def dahai(self, dahai, player):
         if player.can_dahai(dahai):
             player.dahai(dahai)
-            self.last_dahai = dahai
 
             # 打牌の送信
             for i, player in enumerate(self.players):
@@ -147,8 +169,8 @@ class Game():
 
     def routine(self):
         while True:
-            if hasattr(self, 'state'):
-                print('state:', self.state)
+            # if hasattr(self, 'state'):
+            #   print('state:', self.state)
 
             # 行動のリセット
             for player in self.players:
@@ -181,9 +203,9 @@ class Game():
                 yield True
                 continue
 
-            # 副露1(暗槓/加槓)通知状態
+            # 通知1(リーチ/暗槓/加槓)送信状態
             elif self.state == Game.NOTICE1_SEND_STATE:
-                # カン通知送信
+                # 暗槓通知送信
                 self.players[self.teban].my_ankan_notice()
 
                 self.prev_state = Game.NOTICE1_SEND_STATE
@@ -191,7 +213,7 @@ class Game():
                 yield True
                 continue
 
-            # カン受信状態(AIのみ)
+            # 通知1受信状態(AIのみ)
             elif self.state == Game.NOTICE1_RECIEVE_STATE:
                 # 人間なら受信を待つ
                 if self.players[self.teban].type == 'human':
@@ -231,21 +253,65 @@ class Game():
 
                 # AIなら打牌判断を取得
                 dahai = self.players[self.teban].decide_dahai()
-                self.last_dahai = dahai
+                self.players[self.teban].dahai(dahai)
 
-                # 打牌と副露通知の送信
+                # 打牌の送信
                 for i, player in enumerate(self.players):
                     if i == self.teban:
                         player.my_dahai(dahai)
-                        # player.my_huro_notice(dahai)
                     else:
                         player.other_dahai(dahai)
-                        # player.other_huro_notice(dahai)
 
                 self.prev_state = Game.DAHAI_STATE
-                self.state = Game.TSUMO_STATE
+                self.state = Game.NOTICE2_SEND_STATE
                 yield True
                 continue
 
-            # 副露2(# 明槓/ポン/チー)通知状態
-            # elif self.state == Game.NOTICE2_SEND_STATE:
+            # 通知2(明槓/ポン/チー)送信状態
+            elif self.state == Game.NOTICE2_SEND_STATE:
+                # 通知したかどうかを記録
+                self.chi_noticed = False
+
+                # チー通知送信
+                self.players[(self.teban + 1) % 4].my_chi_notice()
+
+                self.prev_state = Game.NOTICE2_SEND_STATE
+                self.state = Game.NOTICE2_RECIEVE_STATE
+                yield True
+                continue
+
+            # 通知2受信状態(AIのみ)
+            elif self.state == Game.NOTICE2_RECIEVE_STATE:
+                # チーが通知されていない場合
+                if not self.chi_noticed:
+                    self.prev_state = Game.NOTICE2_RECIEVE_STATE
+                    self.state = Game.TSUMO_STATE
+                    yield True
+                    continue
+
+                # 人間なら受信を待つ
+                if self.players[(self.teban + 1) % 4].type == 'human':
+                    break
+
+                # AIならチー判断を取得
+                if self.players[(self.teban + 1) % 4].type == 'kago':
+                    chi = self.players[(self.teban + 1) % 4].decide_chi()
+                    if chi is None:
+                        self.prev_state = Game.NOTICE2_RECIEVE_STATE
+                        self.state = Game.TSUMO_STATE
+                        yield True
+                        continue
+
+                # チーがある場合
+                if chi != []:
+                    self.players[(self.teban + 1) % 4].chi(chi, self.last_dahai)
+                    for i, player in enumerate(self.players):
+                        if i == self.teban:
+                            player.my_chi(chi, self.last_dahai)
+                        else:
+                            player.other_chi(chi, self.last_dahai)
+
+                    self.prev_state = Game.NOTICE2_RECIEVE_STATE
+                    self.state = Game.DAHAI_STATE
+                    yield True
+                    continue
