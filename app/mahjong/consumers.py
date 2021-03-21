@@ -13,29 +13,23 @@ class MahjongConsumer(AsyncWebsocketConsumer):
     rooms = None
 
     async def generate_token(self):
-        print('GENERATE_TOKEN')
         randlst = [random.choice(string.ascii_letters + string.digits) for i in range(30)]
         return ''.join(randlst)
 
     async def connect(self):
         if MahjongConsumer.rooms is None:
             MahjongConsumer.rooms = {}
-        print('CONNECT')
         await self.accept()
 
     async def disconnect(self, close_code):
-        print('DISCONNECT')
         await self.close()
 
     async def send(self, data):
-        print('SEND')
         data = json.dumps(data)
         # print('send', data)
         await super().send(text_data=data)
 
     async def receive(self, text_data):
-        print('RECIEVE')
-        start_time = time()
         data = json.loads(text_data)
         data_type = data['type']
         if 'token' in data and data['token'] in MahjongConsumer.rooms:
@@ -44,7 +38,7 @@ class MahjongConsumer(AsyncWebsocketConsumer):
 
         # print('receive:', data)
         # if hasattr(self, 'game') and hasattr(self.game, 'state'):
-        #     ##### print('state:', self.game.state)
+        #     print('state:', self.game.state)
 
         if data_type == 'ready':
             await self.start_game(data['mode'])
@@ -65,12 +59,8 @@ class MahjongConsumer(AsyncWebsocketConsumer):
             await self.send(self.player.actions)
             await self.routine()
 
-        end_time = time()
-        print('TIME:', end_time - start_time)
-
     # start_gameだけはconsumerで
     async def start_game(self, mode):
-        print('START_GAME')
         # GameにRoomに登録
         self.game = Game()
         self.token = await self.generate_token()
