@@ -48,6 +48,10 @@ class MahjongConsumer(AsyncWebsocketConsumer):
             await self.send(self.player.actions)
             await self.routine()
 
+        elif data_type == 'pon':
+            self.game.pon(data['body']['pais'], data['body']['pai'], self.player)
+            await self.routine()
+
         elif data_type == 'chi':
             self.game.chi(data['body']['pais'], data['body']['pai'], self.player)
             await self.routine()

@@ -28,6 +28,13 @@ class Player():
         self.huro.append(ankan)
         self.game.n_kan += 1
 
+    def pon(self, pais, pai):
+        for i in pais:
+            if i != pai:
+                self.tehai.pop(self.tehai.index(i))
+        self.huro.append(pais)
+        self.game.teban = self.position
+
     def chi(self, pais, pai):
         for i in pais:
             if i != pai:
@@ -120,6 +127,35 @@ class Player():
             if i not in self.tehai:
                 # print('手牌に含まれていない牌がある')
                 return False
+        return True
+
+    def can_pon(self, pais, pai):
+        if self.game.teban == self.position:
+            print('捨てた本人')
+            return False
+        if self.game.state != Game.NOTICE2_SEND_STATE and self.game.state != Game.NOTICE2_RECIEVE_STATE:
+            print('ステート異常')
+            return False
+        if pai not in pais:
+            print('鳴いた牌が含まれていない')
+            return False
+        if self.game.last_dahai != pai:
+            print('鳴いた牌が最後の打牌と不一致')
+            return False
+        if len(pais) != 3:
+            print('牌の数が3つじゃない')
+            return False
+        for i in range(3):
+            if pais[i] != pai and pais[i] not in self.tehai:
+                print('手牌に含まれていない牌がある')
+                return False
+        if not pais[0] // 4 == pais[1] // 4 == pais[2] // 4:
+            print('同じじゃない', pais, pai, self.tehai)
+            return False
+        if len(set(pais)) != 3:
+            print('牌番号に同じものがある')
+            return False
+        print('pon', pais)
         return True
 
     def can_chi(self, pais, pai):
@@ -222,6 +258,92 @@ class Player():
             }
         })
 
+    def my_pon_notice(self):
+        action = {
+            'type': 'my_pon_notice',
+            'body': []
+        }
+
+        done = [[0] * 2 for _ in range(34)]
+        aka = [16, 52, 88]
+        for i, j in combinations(self.tehai, 2):
+            if not i // 4 == j // 4 == self.game.last_dahai // 4:
+                continue
+
+            if i in aka or j in aka or self.game.last_dahai in aka:
+                if done[i//4][1] == 0:
+                    pais = [self.game.last_dahai, i, j]
+                    if self.can_pon(pais, self.game.last_dahai):
+                        action['body'].append({
+                            'pai': self.game.last_dahai,
+                            'pais': pais,
+                            'dummies': self.game.make_dummies(pais)
+                        })
+                        done[i//4][1] = 1
+            else:
+                if done[i//4][0] == 0:
+                    pais = [self.game.last_dahai, i, j]
+                    if self.can_pon(pais, self.game.last_dahai):
+                        action['body'].append({
+                            'pai': self.game.last_dahai,
+                            'pais': pais,
+                            'dummies': self.game.make_dummies(pais)
+                        })
+                        done[i//4][0] = 1
+
+        if len(action['body']) == 0:
+            self.game.pon_dicisions[self.position] = [None, None]
+        else:
+            self.actions.append(action)
+
+    def my_pon(self, pais, pai):
+        self.actions.append({
+            'type': 'my_pon',
+            'body': {
+                'pai': pai,
+                'pais': pais,
+                'dummies': self.game.make_dummies(pais)
+            }
+        })
+
+    def other_pon(self, pais, pai):
+        self.actions.append({
+            'type': 'other_pon',
+            'body': {
+                'pai': pai,
+                'pais': pais,
+                'dummies': self.game.make_dummies(pais),
+                'who': (self.game.teban - self.position) % 4,
+            }
+        })
+
+    def my_chi_notice(self):
+        action = {
+            'type': 'my_chi_notice',
+            'body': []
+        }
+
+        tmp = set(map(self.game.make_simple, self.tehai))
+        tehai = []
+        for i in self.tehai:
+            if self.game.make_simple(i) in tmp:
+                tehai.append(i)
+                tmp.remove(self.game.make_simple(i))
+
+        for i, j in combinations(tehai, 2):
+            pais = [self.game.last_dahai, i, j]
+            if self.can_chi(pais, self.game.last_dahai):
+                action['body'].append({
+                    'pai': self.game.last_dahai,
+                    'pais': pais,
+                    'dummies': self.game.make_dummies(pais)
+                })
+
+        if len(action['body']) == 0:
+            self.game.chi_dicisions[self.position] = [None, None]
+        else:
+            self.actions.append(action)
+
     def my_chi(self, pais, pai):
         self.actions.append({
             'type': 'my_chi',
@@ -270,30 +392,3 @@ class Player():
                 'who': (self.game.teban - self.position) % 4
             }
         })
-
-    def my_chi_notice(self):
-        action = {
-            'type': 'my_chi_notice',
-            'body': []
-        }
-
-        tmp = set(map(self.game.make_simple, self.tehai))
-        tehai = []
-        for i in self.tehai:
-            if self.game.make_simple(i) in tmp:
-                tehai.append(i)
-                tmp.remove(self.game.make_simple(i))
-
-        for i, j in combinations(tehai, 2):
-            pais = [self.game.last_dahai, i, j]
-            if self.can_chi(pais, self.game.last_dahai):
-                action['body'].append({
-                    'pai': self.game.last_dahai,
-                    'pais': pais,
-                    'dummies': self.game.make_dummies(pais)
-                })
-
-        if len(action['body']) == 0:
-            self.game.chi_dicisions[self.position] = [None, None]
-        else:
-            self.actions.append(action)

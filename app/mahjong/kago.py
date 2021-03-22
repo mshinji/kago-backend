@@ -13,8 +13,10 @@ module_dir = os.path.dirname(__file__)
 
 class Kago(Player):
     DAHAI_NETWORK = L.Classifier(CNN(n_output=34))
+    PON_NETWORK = L.Classifier(CNN(n_output=2))
     CHI_NETWORK = L.Classifier(CNN(n_output=4))
     serializers.load_npz(os.path.join(module_dir, 'networks/dahai.npz'), DAHAI_NETWORK)
+    serializers.load_npz(os.path.join(module_dir, 'networks/pon.npz'), PON_NETWORK)
     serializers.load_npz(os.path.join(module_dir, 'networks/chi.npz'), CHI_NETWORK)
 
     def __init__(self, *args, **kwargs):
@@ -56,6 +58,28 @@ class Kago(Player):
 
     def decide_ankan(self):
         return None
+
+    def decide_pon(self):
+        x = self.make_input()
+        y = Kago.PON_NETWORK.predictor(x)[0].array
+        mk, mv = None, -float('inf')
+
+        last_dahai = self.game.last_dahai
+        for i in range(2):
+            if y[i] > mv:
+                if i == 0:
+                    mk, mv = None, y[i]
+                if i == 1:
+                    p = last_dahai // 4 * 4
+                    for a, b in product(range(p, p + 4), range(p, p + 4)):
+                        if a == b or b == last_dahai or last_dahai == a:
+                            continue
+                        if self.can_pon([last_dahai, a, b], last_dahai):
+                            mk, mv = [last_dahai, a, b], y[i]
+                            break
+
+        print('KAGO PON', y, mk, last_dahai)
+        return mk
 
     def decide_chi(self):
         x = self.make_input()

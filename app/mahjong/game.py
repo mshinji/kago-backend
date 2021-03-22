@@ -144,6 +144,10 @@ class Game():
             self.prev_state = Game.NOTICE1_RECIEVE_STATE
             self.state = Game.TSUMO_STATE
 
+    def pon(self, pais, pai, player):
+        if player.can_pon(pais, pai):
+            self.pon_dicisions[player.position] = [pais, pai]
+
     def chi(self, pais, pai, player):
         if player.can_chi(pais, pai):
             self.chi_dicisions[player.position] = [pais, pai]
@@ -268,13 +272,15 @@ class Game():
                 self.pon_dicisions = dict()
                 self.chi_dicisions = dict()
 
-                # チー通知送信
+                # 通知送信
                 for player in self.prange():
-                    # player.my_pon_notice()
+                    player.my_pon_notice()
                     player.my_chi_notice()
 
                 # AIの選択を格納
                 for player in self.prange():
+                    if player.type == 'kago' and player.position not in self.pon_dicisions:
+                        self.pon_dicisions[player.position] = [player.decide_pon(), self.last_dahai]
                     if player.type == 'kago' and player.position not in self.chi_dicisions:
                         self.chi_dicisions[player.position] = [player.decide_chi(), self.last_dahai]
 
@@ -285,10 +291,28 @@ class Game():
 
             # 通知2受信状態
             elif self.state == Game.NOTICE2_RECIEVE_STATE:
-                if len(self.chi_dicisions) != 4:
+                if len(self.pon_dicisions) != 4 or len(self.chi_dicisions) != 4:
                     break
 
                 flag = False
+
+                # ポン決定
+                for who, (pais, pai) in self.pon_dicisions.items():
+                    if pais is not None:
+                        flag = True
+                        self.players[who].pon(pais, pai)
+                        for i, player in enumerate(self.players):
+                            if i == self.teban:
+                                player.my_pon(pais, pai)
+                            else:
+                                player.other_pon(pais, pai)
+                        break
+
+                if flag:
+                    self.prev_state = Game.NOTICE2_RECIEVE_STATE
+                    self.state = Game.DAHAI_STATE
+                    yield True
+                    continue
 
                 # チー決定
                 for who, (pais, pai) in self.chi_dicisions.items():
