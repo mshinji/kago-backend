@@ -25,7 +25,7 @@ class MahjongConsumer(AsyncWebsocketConsumer):
 
     async def send(self, data):
         data = json.dumps(data)
-        # print('send', data)
+        print('send', data)
         await super().send(text_data=data)
 
     async def receive(self, text_data):
@@ -35,35 +35,35 @@ class MahjongConsumer(AsyncWebsocketConsumer):
             self.game = MahjongConsumer.rooms.get(data.get('token'))
             self.player = self.game.find_player(0)
 
-        # print('receive:', data)
+        print('receive:', data)
         # if hasattr(self, 'game') and hasattr(self.game, 'state'):
         #     print('state:', self.game.state)
 
         if data_type == 'ready':
             await self.start_game(data['mode'])
-            await self.routine()
 
         elif data_type == 'ankan':
             self.game.ankan(data['body']['pais'], self.player)
             await self.send(self.player.actions)
-            await self.routine()
 
         elif data_type == 'pon':
             self.game.pon(data['body']['pais'], data['body']['pai'], self.player)
-            await self.routine()
+            await self.send(self.player.actions)
 
         elif data_type == 'chi':
             self.game.chi(data['body']['pais'], data['body']['pai'], self.player)
-            await self.routine()
+            await self.send(self.player.actions)
 
         elif data_type == 'cancel':
             self.player.cancel()
-            await self.routine()
+            await self.send(self.player.actions)
 
         elif data_type == 'dahai':
             self.game.dahai(data['body']['pai'], self.player)
             await self.send(self.player.actions)
-            await self.routine()
+
+        elif data_type == 'next':
+            await self.next()
 
     # start_gameだけはconsumerで
     async def start_game(self, mode):
@@ -96,8 +96,8 @@ class MahjongConsumer(AsyncWebsocketConsumer):
         ]
         await self.send(data)
 
-    async def routine(self):
-        for r in self.game.routine():
+    async def next(self):
+        while self.game.next():
             if len(self.player.actions) != 0:
                 await self.send(self.player.actions)
-                # sleep(0.2)
+                break
