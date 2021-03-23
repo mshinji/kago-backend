@@ -1,5 +1,7 @@
-from .game import Game
 from itertools import combinations
+
+from .game import Game
+from .shanten import calc_shanten
 
 
 class Player():
@@ -11,35 +13,34 @@ class Player():
     def prange(self):
         return [[i % 4, self.game.players[i % 4]] for i in range(self.position, self.position + 4)]
 
-    def tsumo(self):
-        tsumo = self.game.yama.pop()
+    def tsumo(self, tsumo):
         self.tehai.append(tsumo)
         self.tehai.sort()
-        return tsumo
 
     def dahai(self, pai):
         self.tehai.pop(self.tehai.index(pai))
         self.kawa.append(pai)
         self.game.last_dahai = pai
+        self.game.last_teban = self.game.teban
 
-    def ankan(self, ankan):
-        for i in ankan:
+    def ankan(self, pais):
+        for i in pais:
             self.tehai.pop(self.tehai.index(i))
-        self.huro.append(ankan)
+        self.huro.append({'type': 'ankan', 'pais': pais})
         self.game.n_kan += 1
 
     def pon(self, pais, pai):
         for i in pais:
             if i != pai:
                 self.tehai.pop(self.tehai.index(i))
-        self.huro.append(pais)
+        self.huro.append({'type': 'pon', 'pais': pais})
         self.game.teban = self.position
 
     def chi(self, pais, pai):
         for i in pais:
             if i != pai:
                 self.tehai.pop(self.tehai.index(i))
-        self.huro.append(pais)
+        self.huro.append({'type': 'chi', 'pais': pais})
         self.game.teban = self.position
 
     def cancel(self):
@@ -100,6 +101,31 @@ class Player():
             return False
         if dahai not in self.tehai:
             # print('手牌に打牌する牌がない')
+            return False
+
+        return True
+
+    def can_richi(self, dahai):
+        if self.game.teban != self.position:
+            print('手番じゃない')
+            return False
+        if self.game.richis[self.position]:
+            print('リーチしている')
+            return False
+        if self.game.state != Game.NOTICE1_SEND_STATE and self.game.state != Game.NOTICE1_RECIEVE_STATE:
+            print('ステート異常')
+            return False
+        huro_types = [huro['type'] for huro in self.huro]
+        if len(huro_types) - huro_types.count('ankan') != 0:
+            print('門前じゃない')
+            return False
+
+        tehai = [0] * 136
+        for i in self.tehai:
+            if i != dahai:
+                tehai[i] += 1
+        if calc_shanten(tehai, len(self.huro)) >= 1:
+            print('テンパってない')
             return False
 
         return True
@@ -198,34 +224,46 @@ class Player():
     def my_start_game(self):
         pass
 
-    def my_start_kyoku(self):
+    def start_kyoku_message(self):
         self.actions.append({
-            'type': 'start_kyoku',
+            'type': 'start_kyoku_message',
             'body': self.game_info()
         })
 
-    def my_tsumo(self, pai):
-        self.actions.append({
-            'type': 'my_tsumo',
+    def tsumo_message(self, pai):
+        data = {
+            'type': 'tsumo_message',
             'body': {
-                'pai': pai,
-                'rest': len(self.game.yama)
+                    'who': (self.game.teban - self.position) % 4,
+                    'rest': len(self.game.yama)
             }
-        })
+        }
 
-    def other_tsumo(self, pai):
-        self.actions.append({
-            'type': 'other_tsumo',
-            'body': {
-                'dummy': self.game.make_dummy(pai),
-                'who': (self.game.teban - self.position) % 4,
-                'rest': len(self.game.yama)
-            }
-        })
+        if self.game.teban == self.position:
+            data['body']['pai'] = pai
+        else:
+            data['body']['dummy'] = self.game.make_dummy(pai)
 
-    def my_ankan_notice(self):
+        self.actions.append(data)
+
+    def richi_notice_message(self):
         action = {
-            'type': 'my_ankan_notice',
+            'type': 'richi_notice_message',
+            'body': []
+        }
+
+        for i in self.tehai:
+            if self.can_richi(i):
+                action['body'].append({
+                    'pai': i,
+                })
+
+        if len(action['body']) != 0:
+            self.actions.append(action)
+
+    def ankan_notice_message(self):
+        action = {
+            'type': 'ankan_notice_message',
             'body': []
         }
 
@@ -239,28 +277,20 @@ class Player():
         if len(action['body']) != 0:
             self.actions.append(action)
 
-    def my_ankan(self, pais):
+    def ankan_message(self, pais):
         self.actions.append({
-            'type': 'my_ankan',
-            'body': {
-                'pais': pais,
-                'dummies': self.game.make_dummies(pais)
-            }
-        })
-
-    def other_ankan(self, pais):
-        self.actions.append({
-            'type': 'other_ankan',
+            'type': 'ankan_message',
             'body': {
                 'pais': pais,
                 'dummies': self.game.make_dummies(pais),
                 'who': (self.game.teban - self.position) % 4,
+                'fromWho': (self.game.teban - self.position) % 4
             }
         })
 
-    def my_pon_notice(self):
+    def pon_notice_message(self):
         action = {
-            'type': 'my_pon_notice',
+            'type': 'pon_notice_message',
             'body': []
         }
 
@@ -277,7 +307,8 @@ class Player():
                         action['body'].append({
                             'pai': self.game.last_dahai,
                             'pais': pais,
-                            'dummies': self.game.make_dummies(pais)
+                            'dummies': self.game.make_dummies(pais),
+                            'fromWho': (self.game.last_teban - self.position) % 4
                         })
                         done[i//4][1] = 1
             else:
@@ -287,7 +318,8 @@ class Player():
                         action['body'].append({
                             'pai': self.game.last_dahai,
                             'pais': pais,
-                            'dummies': self.game.make_dummies(pais)
+                            'dummies': self.game.make_dummies(pais),
+                            'fromWho': (self.game.last_teban - self.position) % 4
                         })
                         done[i//4][0] = 1
 
@@ -296,30 +328,21 @@ class Player():
         else:
             self.actions.append(action)
 
-    def my_pon(self, pais, pai):
+    def pon_message(self, pais, pai):
         self.actions.append({
-            'type': 'my_pon',
-            'body': {
-                'pai': pai,
-                'pais': pais,
-                'dummies': self.game.make_dummies(pais)
-            }
-        })
-
-    def other_pon(self, pais, pai):
-        self.actions.append({
-            'type': 'other_pon',
+            'type': 'pon_message',
             'body': {
                 'pai': pai,
                 'pais': pais,
                 'dummies': self.game.make_dummies(pais),
                 'who': (self.game.teban - self.position) % 4,
+                'fromWho': (self.game.last_teban - self.position) % 4
             }
         })
 
-    def my_chi_notice(self):
+    def chi_notice_message(self):
         action = {
-            'type': 'my_chi_notice',
+            'type': 'chi_notice_message',
             'body': []
         }
 
@@ -336,7 +359,8 @@ class Player():
                 action['body'].append({
                     'pai': self.game.last_dahai,
                     'pais': pais,
-                    'dummies': self.game.make_dummies(pais)
+                    'dummies': self.game.make_dummies(pais),
+                    'fromWho': (self.game.last_teban - self.position) % 4
                 })
 
         if len(action['body']) == 0:
@@ -344,30 +368,21 @@ class Player():
         else:
             self.actions.append(action)
 
-    def my_chi(self, pais, pai):
+    def chi_message(self, pais, pai):
         self.actions.append({
-            'type': 'my_chi',
-            'body': {
-                'pai': pai,
-                'pais': pais,
-                'dummies': self.game.make_dummies(pais)
-            }
-        })
-
-    def other_chi(self, pais, pai):
-        self.actions.append({
-            'type': 'other_chi',
+            'type': 'chi_message',
             'body': {
                 'pai': pai,
                 'pais': pais,
                 'dummies': self.game.make_dummies(pais),
                 'who': (self.game.teban - self.position) % 4,
+                'fromWho': (self.game.last_teban - self.position) % 4
             }
         })
 
-    def all_open_kan_dora(self, pai):
+    def open_dora_message(self, pai):
         self.actions.append({
-            'type': 'all_open_kan_dora',
+            'type': 'open_dora_message',
             'body': {
                 'pai': pai,
                 'dummy': self.game.make_dummy(pai),
@@ -375,17 +390,9 @@ class Player():
             }
         })
 
-    def my_dahai(self, pai):
+    def dahai_message(self, pai):
         self.actions.append({
-            'type': 'my_dahai',
-            'body': {
-                'pai': pai
-            }
-        })
-
-    def other_dahai(self, pai):
-        self.actions.append({
-            'type': 'other_dahai',
+            'type': 'dahai_message',
             'body': {
                 'pai': pai,
                 'dummy': self.game.make_dummy(pai),

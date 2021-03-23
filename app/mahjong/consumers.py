@@ -31,13 +31,11 @@ class MahjongConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         data_type = data['type']
+        print('receive:', data)
+
         if 'token' in data and data['token'] in MahjongConsumer.rooms:
             self.game = MahjongConsumer.rooms.get(data.get('token'))
             self.player = self.game.find_player(0)
-
-        print('receive:', data)
-        # if hasattr(self, 'game') and hasattr(self.game, 'state'):
-        #     print('state:', self.game.state)
 
         if data_type == 'ready':
             await self.start_game(data['mode'])
@@ -48,15 +46,15 @@ class MahjongConsumer(AsyncWebsocketConsumer):
 
         elif data_type == 'pon':
             self.game.pon(data['body']['pais'], data['body']['pai'], self.player)
-            await self.send(self.player.actions)
+            await self.next()
 
         elif data_type == 'chi':
             self.game.chi(data['body']['pais'], data['body']['pai'], self.player)
-            await self.send(self.player.actions)
+            await self.next()
 
         elif data_type == 'cancel':
             self.player.cancel()
-            await self.send(self.player.actions)
+            await self.next()
 
         elif data_type == 'dahai':
             self.game.dahai(data['body']['pai'], self.player)
