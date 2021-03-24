@@ -80,6 +80,7 @@ class Game():
             player.tehai = []
             player.kawa = []
             player.huro = []
+            player.richi_declaration_pai = None
 
         # 手番設定(最初は1引く)
         self.teban = (self.kyoku - 1) % 4
@@ -89,8 +90,8 @@ class Game():
         shuffle(self.dummy)
 
         # 山生成
-        # self.yama = [i for i in range(136)]
-        # shuffle(self.yama)
+        self.yama = [i for i in range(136)]
+        shuffle(self.yama)
 
         # カンテスト用山生成
         # self.yama = [i for i in range(4 * 4 * 4, 136)]
@@ -99,17 +100,17 @@ class Game():
         # self.yama = self.yama + x
 
         # オリジナル山生成
-        original = [
-            135, 134, 131, 130, 127, 126, 123, 122, 119, 118, 115, 114, 111,
-            133, 129, 125, 121, 117, 113, 110, 109, 108, 107, 106, 105, 104,
-            1, 2, 5, 9, 13, 18, 19, 21, 25, 29, 30, 33, 34,
-            0, 4, 8, 12, 16, 17, 20, 24, 28, 32, 132, 128, 124,
-        ]
-        self.yama = [i for i in range(136)]
-        shuffle(self.yama)
-        for i in original:
-            self.yama.pop(self.yama.index(i))
-        self.yama = self.yama[:len(self.yama)-14] + original + self.yama[len(self.yama)-14:]
+        # original = [
+        #     135, 134, 131, 130, 127, 126, 123, 122, 119, 118, 115, 114, 111,
+        #     133, 129, 125, 121, 117, 113, 110, 109, 108, 107, 106, 105, 104,
+        #     1, 2, 5, 9, 13, 18, 19, 21, 25, 29, 30, 33, 34,
+        #     0, 4, 8, 12, 16, 17, 20, 24, 28, 32, 132, 128, 124,
+        # ]
+        # self.yama = [i for i in range(136)]
+        # shuffle(self.yama)
+        # for i in original:
+        #     self.yama.pop(self.yama.index(i))
+        # self.yama = self.yama[:len(self.yama)-14] + original + self.yama[len(self.yama)-14:]
 
         # ドラ生成
         self.dora = []
@@ -129,6 +130,7 @@ class Game():
                 player.tsumo(tsumo)
 
         # 最後の打牌・手番
+        self.last_tsumo = None
         self.last_dahai = None
         self.last_teban = None
 
@@ -166,13 +168,13 @@ class Game():
             self.pon_dicisions[player.position] = [None, None]
             self.chi_dicisions[player.position] = [pais, pai]
 
-    def dahai(self, dahai, player):
-        if player.can_dahai(dahai):
-            player.dahai(dahai)
+    def dahai(self, dahai, richi, player):
+        if player.can_dahai(dahai) and (not richi or player.can_richi(dahai)):
+            player.dahai(dahai, richi)
 
             # 打牌の送信
             for player in self.players:
-                player.dahai_message(dahai)
+                player.dahai_message(dahai, richi)
 
             self.prev_state = self.DAHAI_STATE
             self.state = Game.NOTICE2_SEND_STATE
@@ -248,12 +250,13 @@ class Game():
                 return False
 
             # AIなら打牌判断を取得
-            dahai = self.players[self.teban].decide_dahai()
-            self.players[self.teban].dahai(dahai)
+            richi = self.players[self.teban].decide_richi()
+            dahai = self.players[self.teban].decide_dahai(richi)
+            self.players[self.teban].dahai(dahai, richi)
 
             # 打牌の送信
             for player in self.players:
-                player.dahai_message(dahai)
+                player.dahai_message(dahai, richi)
 
             self.prev_state = Game.DAHAI_STATE
             self.state = Game.NOTICE2_SEND_STATE

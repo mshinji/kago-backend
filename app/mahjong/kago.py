@@ -13,9 +13,11 @@ module_dir = os.path.dirname(__file__)
 
 class Kago(Player):
     DAHAI_NETWORK = L.Classifier(CNN(n_output=34))
+    RICHI_NETWORK = L.Classifier(CNN(n_output=2))
     PON_NETWORK = L.Classifier(CNN(n_output=2))
     CHI_NETWORK = L.Classifier(CNN(n_output=4))
     serializers.load_npz(os.path.join(module_dir, 'networks/dahai.npz'), DAHAI_NETWORK)
+    serializers.load_npz(os.path.join(module_dir, 'networks/richi.npz'), RICHI_NETWORK)
     serializers.load_npz(os.path.join(module_dir, 'networks/pon.npz'), PON_NETWORK)
     serializers.load_npz(os.path.join(module_dir, 'networks/chi.npz'), CHI_NETWORK)
 
@@ -55,6 +57,23 @@ class Kago(Player):
 
         x = np.array([x], np.float32)
         return x
+
+    def decide_richi(self):
+        print('tehai :', [i // 4 for i in self.tehai])
+        for p in self.tehai:
+            print(p // 4, ':', self.can_richi(p))
+        if not any([self.can_richi(dahai) for dahai in self.tehai]):
+            return False
+
+        x = self.make_input()
+        y = Kago.RICHI_NETWORK.predictor(x)[0].array
+        print('===========')
+        print('===========')
+        print('KAGO RICHI', y)
+        print('===========')
+        print('===========')
+
+        return bool(y[1] > y[0])
 
     def decide_ankan(self):
         return None
@@ -116,7 +135,7 @@ class Kago(Player):
         print('KAGO CHI', y, mk, last_dahai)
         return mk
 
-    def decide_dahai(self):
+    def decide_dahai(self, richi):
         x = self.make_input()
         y = Kago.DAHAI_NETWORK.predictor(x)[0].array
         mk, mv = -1, -float('inf')
@@ -124,7 +143,7 @@ class Kago(Player):
         for i in range(34):
             if y[i] > mv:
                 for p in range(i * 4 + 3, i * 4 - 1, -1):
-                    if p in self.tehai:
+                    if p in self.tehai and self.can_dahai(p) and (not richi or self.can_richi(p)):
                         mk, mv = p, y[i]
                         break
 

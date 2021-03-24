@@ -13,11 +13,15 @@ class Player():
     def prange(self):
         return [[i % 4, self.game.players[i % 4]] for i in range(self.position, self.position + 4)]
 
-    def tsumo(self, tsumo):
-        self.tehai.append(tsumo)
+    def tsumo(self, pai):
+        self.tehai.append(pai)
         self.tehai.sort()
+        self.game.last_tsumo = pai
 
-    def dahai(self, pai):
+    def dahai(self, pai, richi):
+        # TODO リーチ処理
+        if richi:
+            self.game.richis[self.position] = True
         self.tehai.pop(self.tehai.index(pai))
         self.kawa.append(pai)
         self.game.last_dahai = pai
@@ -66,6 +70,11 @@ class Player():
             else:
                 kawas.append(self.game.make_dummies(player.kawa))
 
+        richi_declaration_pais = []
+        for player in self.game.players:
+            if player.richi_declaration_pai is not None:
+                richi_declaration_pais.append(player.richi_declaration_pai)
+
         huros = []
         for _, player in self.prange():
             huros.append(player.huro)
@@ -80,6 +89,7 @@ class Player():
         return {
             'tehais': tehais,
             'kawas': kawas,
+            'richiDeclarationPais': richi_declaration_pais,
             'huros': huros,
             'kyoku': self.game.kyoku,
             'honba': self.game.honba,
@@ -93,6 +103,7 @@ class Player():
 
     # アクション判定関数
     def can_dahai(self, dahai):
+        print('RICHIS:', self.game.richis, self.position)
         if self.game.teban != self.position:
             # print('手番じゃない')
             return False
@@ -102,30 +113,34 @@ class Player():
         if dahai not in self.tehai:
             # print('手牌に打牌する牌がない')
             return False
+        if self.game.richis[self.position] and dahai != self.game.last_tsumo:
+            # print('リーチ後にツモ切りしてない')
+            return False
 
         return True
 
     def can_richi(self, dahai):
         if self.game.teban != self.position:
-            print('手番じゃない')
+            # print('手番じゃない')
             return False
         if self.game.richis[self.position]:
-            print('リーチしている')
+            # print('リーチしている')
             return False
-        if self.game.state != Game.NOTICE1_SEND_STATE and self.game.state != Game.NOTICE1_RECIEVE_STATE:
-            print('ステート異常')
+        if self.game.state not in [Game.NOTICE1_SEND_STATE, Game.NOTICE1_RECIEVE_STATE, Game.DAHAI_STATE]:
+            # print('ステート異常')
             return False
         huro_types = [huro['type'] for huro in self.huro]
         if len(huro_types) - huro_types.count('ankan') != 0:
-            print('門前じゃない')
+            # print('門前じゃない')
             return False
+        # TODO 1000点以上ない
 
         tehai = [0] * 136
         for i in self.tehai:
             if i != dahai:
                 tehai[i] += 1
         if calc_shanten(tehai, len(self.huro)) >= 1:
-            print('テンパってない')
+            # print('テンパってない')
             return False
 
         return True
@@ -157,29 +172,32 @@ class Player():
 
     def can_pon(self, pais, pai):
         if self.game.teban == self.position:
-            print('捨てた本人')
+            # print('捨てた本人')
+            return False
+        if self.game.richis[self.position]:
+            # print('リーチしている')
             return False
         if self.game.state != Game.NOTICE2_SEND_STATE and self.game.state != Game.NOTICE2_RECIEVE_STATE:
-            print('ステート異常')
+            # print('ステート異常')
             return False
         if pai not in pais:
-            print('鳴いた牌が含まれていない')
+            # print('鳴いた牌が含まれていない')
             return False
         if self.game.last_dahai != pai:
-            print('鳴いた牌が最後の打牌と不一致')
+            # print('鳴いた牌が最後の打牌と不一致')
             return False
         if len(pais) != 3:
-            print('牌の数が3つじゃない')
+            # print('牌の数が3つじゃない')
             return False
         for i in range(3):
             if pais[i] != pai and pais[i] not in self.tehai:
-                print('手牌に含まれていない牌がある')
+                # print('手牌に含まれていない牌がある')
                 return False
         if not pais[0] // 4 == pais[1] // 4 == pais[2] // 4:
-            print('同じじゃない', pais, pai, self.tehai)
+            # print('同じじゃない', pais, pai, self.tehai)
             return False
         if len(set(pais)) != 3:
-            print('牌番号に同じものがある')
+            # print('牌番号に同じものがある')
             return False
         print('pon', pais)
         return True
@@ -187,6 +205,9 @@ class Player():
     def can_chi(self, pais, pai):
         if (self.game.teban + 1) % 4 != self.position:
             # print('次の手番じゃない')
+            return False
+        if self.game.richis[self.position]:
+            # print('リーチしている')
             return False
         if self.game.state != Game.NOTICE2_SEND_STATE and self.game.state != Game.NOTICE2_RECIEVE_STATE:
             # print('ステート異常')
@@ -390,12 +411,13 @@ class Player():
             }
         })
 
-    def dahai_message(self, pai):
+    def dahai_message(self, pai, richi):
         self.actions.append({
             'type': 'dahai_message',
             'body': {
                 'pai': pai,
                 'dummy': self.game.make_dummy(pai),
-                'who': (self.game.teban - self.position) % 4
+                'who': (self.game.teban - self.position) % 4,
+                'richi': richi
             }
         })
