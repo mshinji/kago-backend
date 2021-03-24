@@ -59,19 +59,11 @@ class Kago(Player):
         return x
 
     def decide_richi(self):
-        print('tehai :', [i // 4 for i in self.tehai])
-        for p in self.tehai:
-            print(p // 4, ':', self.can_richi(p))
         if not any([self.can_richi(dahai) for dahai in self.tehai]):
             return False
 
         x = self.make_input()
         y = Kago.RICHI_NETWORK.predictor(x)[0].array
-        print('===========')
-        print('===========')
-        print('KAGO RICHI', y)
-        print('===========')
-        print('===========')
 
         return bool(y[1] > y[0])
 

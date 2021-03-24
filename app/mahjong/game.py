@@ -111,6 +111,17 @@ class Game():
         # for i in original:
         #     self.yama.pop(self.yama.index(i))
         # self.yama = self.yama[:len(self.yama)-14] + original + self.yama[len(self.yama)-14:]
+        original = [
+            0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48,
+            1, 5, 9, 13, 17, 21, 25, 29, 33, 52, 56, 60, 64,
+            2, 6, 10, 14, 18, 22, 26, 30, 34, 72, 76, 80, 84,
+            3, 7, 11, 15, 19, 23, 27, 31, 35, 88, 92, 96, 100
+        ]
+        self.yama = [i for i in range(136)]
+        shuffle(self.yama)
+        for i in original:
+            self.yama.pop(self.yama.index(i))
+        self.yama = self.yama[:len(self.yama)-14] + original + self.yama[len(self.yama)-14:]
 
         # ドラ生成
         self.dora = []
@@ -144,6 +155,12 @@ class Game():
 
         # 状態
         self.prev_state, self.state = self.state, Game.KYOKU_START_STATE
+
+    def tsumoho(self, player):
+        if player.can_tsumoho():
+            tsumoho = player.tsumoho()
+            for player in self.players:
+                player.tsumoho_message(tsumoho)
 
     def ankan(self, ankan, player):
         if player.can_ankan(ankan):
@@ -207,9 +224,10 @@ class Game():
             self.prev_state, self.state = self.state, Game.NOTICE1_SEND_STATE
             return True
 
-        # 通知1(リーチ/暗槓/加槓)送信状態
+        # 通知1(ツモ和/リーチ/暗槓/加槓)送信状態
         elif self.state == Game.NOTICE1_SEND_STATE:
             # 通知送信
+            self.players[self.teban].tsumoho_notice_message()
             self.players[self.teban].richi_notice_message()
             self.players[self.teban].ankan_notice_message()
 
@@ -262,7 +280,7 @@ class Game():
             self.state = Game.NOTICE2_SEND_STATE
             return True
 
-        # 通知2(明槓/ポン/チー)送信状態
+        # 通知2(ロン和/明槓/ポン/チー)送信状態
         elif self.state == Game.NOTICE2_SEND_STATE:
             # 選択を格納
             self.pon_dicisions = dict()

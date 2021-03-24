@@ -10,38 +10,51 @@ class Agari():
     YAOCHU2 = [0, 6, 9, 15, 18, 24]
     YAKU = ['門前清自摸和', '立直', '一発', '槍槓', '嶺上開花',
             '海底摸月', '河底撈魚', '平和', '断幺九', '一盃口',
-            '自風 東', '自風 南', '自風 西', '自風 北',
-            '場風 東', '場風 南', '場風 西', '場風 北',
-            '役牌 白', '役牌 發', '役牌 中',
-            '両立直', '七対子', '混全帯幺九', '一気通貫', '三色同順', '三色同刻',
-            '三槓子', '対々和', '三暗刻', '小三元', '混老頭',
-            '二盃口', '純全帯幺九', '混一色', '清一色',
-            '', '天和', '地和', '大三元',
-            '四暗刻', '四暗刻単騎', '字一色', '緑一色',
-            '清老頭', '九蓮宝燈', '純正九蓮宝燈', '国士無双',
-            '国士無双１３面', '大四喜', '小四喜', '四槓子',
-            'ドラ', '裏ドラ', '赤ドラ']
+            '自風 東', '自風 南', '自風 西', '自風 北', '場風 東',
+            '場風 南', '場風 西', '場風 北', '役牌 白', '役牌 發',
+            '役牌 中', '両立直', '七対子', '混全帯幺九', '一気通貫',
+            '三色同順', '三色同刻', '三槓子', '対々和', '三暗刻',
+            '小三元', '混老頭', '二盃口', '純全帯幺九', '混一色',
+            '清一色', '', '天和', '地和', '大三元',
+            '四暗刻', '四暗刻単騎', '字一色', '緑一色', '清老頭',
+            '九蓮宝燈', '純正九蓮宝燈', '国士無双', '国士無双１３面', '大四喜',
+            '小四喜', '四槓子', 'ドラ', '裏ドラ', '赤ドラ']
 
-    def __init__(self, jun, huro, ba, jokyo_yaku):
-        self.jun = jun
-        self.huro = huro
-        # ba = [kyoku, honba, kyotaku, who, fromWho, (paoWho)]
+    def __init__(self, tehai, huro, machi, ba, jokyo_yaku):
+        self.tehai = [0] * 34
+        for i in tehai:
+            self.tehai[i // 4] += 1
+
+        self.huro = []
+        for h in huro:
+            if h['type'] == 'chi':
+                self.huro.append([h['pais'][0] // 4, -1, -1])
+            if h['type'] == 'pon':
+                self.huro.append([h['pais'][0] // 4, -1, -2])
+            if h['type'] == 'minkan':
+                self.huro.append([h['pais'][0] // 4, -1, -8])
+            if h['type'] == 'kakan':
+                self.huro.append([h['pais'][0] // 4, -1, -8])
+            if h['type'] == 'ankan':
+                self.huro.append([h['pais'][0] // 4, -1, -16])
+
+        self.machi = machi // 4
+
+        # [kyoku, honba, kyotaku, who, fromWho, (paoWho)]
         self.ba = ba
 
-        self.all_agari = []
-
-        # 手牌のビットマップ作成
-        self.map = jun.copy()
-
-        for i in range(0, len(huro), 3):
+        self.zenpai = self.tehai[::]
+        for i in range(0, len(self.huro), 3):
             if huro[i+2] <= -2:
-                self.map[huro[i]] += 3
+                self.zenpai[self.huro[i]] += 3
             else:
-                self.map[huro[i]] += 1
-                self.map[huro[i]+1] += 1
-                self.map[huro[i]+2] += 1
+                self.zenpai[self.huro[i]] += 1
+                self.zenpai[self.huro[i]+1] += 1
+                self.zenpai[self.huro[i]+2] += 1
 
-        self.menzen = 1 if len(huro) - huro.count(-16) * 3 == 0 else 0
+        self.agaris = []
+
+        self.menzen = 1 if len(self.huro) - self.huro.count(-16) * 3 == 0 else 0
         self.tsumo = 1 if ba[3] == ba[4] else 0
 
         # 状況役と全部役を定義
@@ -50,16 +63,22 @@ class Agari():
 
         # 一般手の和了形を全て抜き出す
         for i in range(34):
-            if self.jun[i] >= 2:
-                self.jun[i] -= 2
+            if self.tehai[i] >= 2:
+                self.tehai[i] -= 2
                 self.get_mentsu([], i, 0)
-                self.jun[i] += 2
+                self.tehai[i] += 2
 
-    def get_ten(self, machi):
+        self.get_ten()
+
+        self.yaku = [0] * 55
+        for i in range(55):
+            self.yaku[i] += self.zenbu_yaku[i] + self.bubun_yaku[i] + self.jokyo_yaku[i]
+
+    def get_ten(self):
         max = [0, 0]
-        for agari in self.all_agari:
+        for agari in self.agaris:
             for i in range(len(self.huro), 13):
-                if machi == agari[i]:
+                if self.machi == agari[i]:
                     # 双ポンロンの場合明刻に変換
                     if not self.tsumo and i in range(0, 3*4, 3) and agari[i+2] == -4:
                         agari[i+2] = -2
@@ -74,7 +93,12 @@ class Agari():
                     if hu == 20 and self.menzen:
                         bubun_yaku[7] = 1
 
+                    print('状況', self.jokyo_yaku)
+                    print('全部', self.zenbu_yaku)
+                    print('部分', bubun_yaku)
                     han = sum(self.jokyo_yaku) + sum(self.zenbu_yaku) + sum(bubun_yaku)
+                    if han == sum([self.jokyo_yaku[Agari.YAKU.index(yaku)] for yaku in ['ドラ', '裏ドラ', '赤ドラ']]):
+                        han == 0
 
                     # ツモ符計算
                     # 喰い平和形
@@ -94,15 +118,14 @@ class Agari():
                         self.bubun_yaku = bubun_yaku
 
         # 七対子
-        if self.jun.count(2) == 7:
+        if self.tehai.count(2) == 7:
             han = sum(self.jokyo_yaku) + sum(self.zenbu_yaku) + 2
-
             if 25 * (2 ** han) > max[0] * (2 ** max[1]):
                 max = [25, han]
                 self.bubun_yaku = [2 if i == 22 else 0 for i in range(0, 55)]
 
         # 国士無双
-        if sum([1 if self.jun[i] >= 1 else -1 for i in Agari.YAOCHU1]) == 13:
+        if sum([1 if self.tehai[i] >= 1 else -1 for i in Agari.YAOCHU1]) == 13:
             han = sum(self.jokyo_yaku[37:39]) + 13
             max = [1, han]
             self.bubun_yaku = [13 if i == 47 else 0 for i in range(0, 55)]
@@ -114,10 +137,9 @@ class Agari():
             han = sum(self.jokyo_yaku + self.zenbu_yaku + self.bubun_yaku)
 
         # 点数変動計算
-        ten_exchange = [0, 0, 0, 0]
+        score_movements = [0, 0, 0, 0]
 
         ten = max[0] * (2 ** (max[1] + 2))
-
         if ten >= 2000:
             if max[1] >= 13:
                 ten = 8000 * (max[1] // 13)
@@ -140,109 +162,70 @@ class Agari():
         if self.tsumo:
             # 包ツモ
             if len(self.ba) == 6:
-                ten_exchange[self.ba[3]] = ten + self.ba[1] * 3 + self.ba[2] * 10
-                ten_exchange[self.ba[5]] = -ten - self.ba[1] * 3
+                score_movements[self.ba[3]] = ten + self.ba[1] * 3 + self.ba[2] * 10
+                score_movements[self.ba[5]] = -ten - self.ba[1] * 3
 
             # 親ツモ
             elif self.ba[3] == self.ba[0] % 4:
                 for i in range(0, 4):
                     if i == self.ba[3]:
-                        ten_exchange[i] = -(-ten // 3) * 3 + (self.ba[1] * 3) + (self.ba[2] * 10)
+                        score_movements[i] = -(-ten // 3) * 3 + (self.ba[1] * 3) + (self.ba[2] * 10)
                     else:
-                        ten_exchange[i] = -ten // 3 - self.ba[1]
+                        score_movements[i] = -ten // 3 - self.ba[1]
             # 子ツモ
             else:
                 for i in range(0, 4):
                     if i == self.ba[3]:
-                        ten_exchange[i] += self.ba[2] * 10
+                        score_movements[i] += self.ba[2] * 10
                     elif i == self.ba[0] % 4:
-                        ten_exchange[i] = -ten // 2 - self.ba[1]
-                        ten_exchange[self.ba[3]] -= ten_exchange[i]
+                        score_movements[i] = -ten // 2 - self.ba[1]
+                        score_movements[self.ba[3]] -= score_movements[i]
                     else:
-                        ten_exchange[i] = -ten // 4 - self.ba[1]
-                        ten_exchange[self.ba[3]] -= ten_exchange[i]
+                        score_movements[i] = -ten // 4 - self.ba[1]
+                        score_movements[self.ba[3]] -= score_movements[i]
 
         else:
             # 包ロン(包者と放銃者が存在)
             if len(self.ba) == 6:
-                ten_exchange[self.ba[3]] = ten + self.ba[1] * 3 + self.ba[2] * 10
-                ten_exchange[self.ba[4]] = -ten // 2
-                ten_exchange[self.ba[5]] = -ten // 2 - self.ba[1] * 3
+                score_movements[self.ba[3]] = ten + self.ba[1] * 3 + self.ba[2] * 10
+                score_movements[self.ba[4]] = -ten // 2
+                score_movements[self.ba[5]] = -ten // 2 - self.ba[1] * 3
 
             # ロン
             else:
-                ten_exchange[self.ba[3]] = ten + self.ba[1] * 3 + self.ba[2] * 10
-                ten_exchange[self.ba[4]] = -ten - self.ba[1] * 3
+                score_movements[self.ba[3]] = ten + self.ba[1] * 3 + self.ba[2] * 10
+                score_movements[self.ba[4]] = -ten - self.ba[1] * 3
 
-        return [i * 100 for i in ten_exchange]
-
-    def get_simple_ten(self):
-        max = 0
-
-        for agari in self.all_agari:
-            bubun_yaku = self.get_bubun_yaku(agari)
-
-            if sum(bubun_yaku) + sum(self.zenbu_yaku) + sum(self.jokyo_yaku) > max:
-                max = sum(bubun_yaku) + sum(self.zenbu_yaku) + sum(self.jokyo_yaku)
-                self.bubun_yaku = bubun_yaku
-
-        if sum(self.jokyo_yaku[37:52] + self.zenbu_yaku[37:52] + self.bubun_yaku[37:52]) != 0:
-            self.jokyo_yaku = [self.jokyo_yaku[i] if 37 <= i <= 51 else 0 for i in range(55)]
-            self.zenbu_yaku = [self.zenbu_yaku[i] if 37 <= i <= 51 else 0 for i in range(55)]
-            self.bubun_yaku = [self.bubun_yaku[i] if 37 <= i <= 51 else 0 for i in range(55)]
-            # han = sum(self.jokyo_yaku + self.zenbu_yaku + self.bubun_yaku)
-
-        ten = 30 * (2 ** (max + 2))
-
-        if ten >= 2000:
-            if max >= 13:
-                ten = 8000 * (max // 13)
-            elif max >= 11:
-                ten = 6000
-            elif max >= 8:
-                ten = 4000
-            elif max >= 6:
-                ten = 3000
-            else:
-                ten = 2000
-
-        if self.ba[3] == self.ba[0] % 4:
-            ten *= 6
-        else:
-            ten *= 4
-
-        ten = -(-ten // 100) * 100
-
-        return ten
+        self.score_movements = [i * 100 for i in score_movements]
 
     # 全面子抜き出し
-    def get_mentsu(self, jun, janto, start):
-        if sum(self.jun) == 0:
-            self.all_agari.append(self.huro + jun + [janto, janto])
+    def get_mentsu(self, tehai, janto, start):
+        if sum(self.tehai) == 0:
+            self.agaris.append(self.huro + tehai + [janto, janto])
             return
 
-        if sum(self.jun[0:start]) != 0:
+        if sum(self.tehai[0:start]) != 0:
             return
 
         for i in range(start, 34):
-            if self.jun[i] == 0:
+            if self.tehai[i] == 0:
                 continue
 
             # 順子抜き出し
-            if i <= 26 and i % 9 <= 6 and self.jun[i + 1] and self.jun[i + 2]:
-                self.jun[i] -= 1
-                self.jun[i+1] -= 1
-                self.jun[i+2] -= 1
-                self.get_mentsu(jun + [i, i + 1, i + 2], janto, i)
-                self.jun[i] += 1
-                self.jun[i+1] += 1
-                self.jun[i+2] += 1
+            if i <= 26 and i % 9 <= 6 and self.tehai[i + 1] and self.tehai[i + 2]:
+                self.tehai[i] -= 1
+                self.tehai[i+1] -= 1
+                self.tehai[i+2] -= 1
+                self.get_mentsu(tehai + [i, i + 1, i + 2], janto, i)
+                self.tehai[i] += 1
+                self.tehai[i+1] += 1
+                self.tehai[i+2] += 1
 
             # 刻子抜き出し
-            if self.jun[i] >= 3:
-                self.jun[i] -= 3
-                self.get_mentsu(jun + [i, -1, -4], janto, i)
-                self.jun[i] += 3
+            if self.tehai[i] >= 3:
+                self.tehai[i] -= 3
+                self.get_mentsu(tehai + [i, -1, -4], janto, i)
+                self.tehai[i] += 3
 
     # ツモ符を除く符計算を行う
     def get_hu(self, agari, i):
@@ -294,67 +277,67 @@ class Agari():
 
         # 役満
         # 39:大三元
-        if self.map[31] + self.map[32] + self.map[33] == 9:
+        if self.zenpai[31] + self.zenpai[32] + self.zenpai[33] == 9:
             zenbu_yaku[39] = 13
 
         # 42:字一色
-        if sum(self.map[27:34]) == 14:
+        if sum(self.zenpai[27:34]) == 14:
             zenbu_yaku[42] = 13
 
         # 43:緑一色
-        if sum([self.map[i] for i in [19, 20, 21, 23, 25, 32]]) == 14:
+        if sum([self.zenpai[i] for i in [19, 20, 21, 23, 25, 32]]) == 14:
             zenbu_yaku[43] = 13
 
         # 44:清老頭
-        if sum([self.map[i] for i in [0, 8, 9, 17, 18, 26]]) == 14:
+        if sum([self.zenpai[i] for i in [0, 8, 9, 17, 18, 26]]) == 14:
             zenbu_yaku[44] = 13
 
         # 45:九蓮宝燈
         if self.huro == []:
             for i in [0, 9, 18]:
-                if self.map[i] >= 3 and self.map[i+8] >= 3 and 0 not in self.map[i+1:i+8]:
+                if self.zenpai[i] >= 3 and self.zenpai[i+8] >= 3 and 0 not in self.zenpai[i+1:i+8]:
                     zenbu_yaku[45] = 13
 
         # 49:大四喜
-        if self.map[27] + self.map[28] + self.map[29] + self.map[30] == 12:
+        if self.zenpai[27] + self.zenpai[28] + self.zenpai[29] + self.zenpai[30] == 12:
             zenbu_yaku[49] = 13
 
         # 50:小四喜
-        if self.map[27] + self.map[28] + self.map[29] + self.map[30] == 11:
+        if self.zenpai[27] + self.zenpai[28] + self.zenpai[29] + self.zenpai[30] == 11:
             zenbu_yaku[50] = 13
 
         # 役満以外
         # 8:断么九
-        if sum([self.map[i] for i in Agari.YAOCHU1]) == 0:
+        if sum([self.zenpai[i] for i in Agari.YAOCHU1]) == 0:
             zenbu_yaku[8] = 1
 
         # 34:混一色, 35:清一色
         for i in [0, 9, 18]:
-            if sum(self.map[i:i+9]) == 14:
+            if sum(self.zenpai[i:i+9]) == 14:
                 zenbu_yaku[35] = 5 + self.menzen
-            elif sum(self.map[i:i+9] + self.map[27:34]) == 14:
+            elif sum(self.zenpai[i:i+9] + self.zenpai[27:34]) == 14:
                 zenbu_yaku[34] = 2 + self.menzen
 
         # 10-13:自風, 14-17:場風, 18-20:役牌
-        if self.map[27 + (self.ba[3] - self.ba[0]) % 4] == 3:
+        if self.zenpai[27 + (self.ba[3] - self.ba[0]) % 4] == 3:
             zenbu_yaku[10 + (self.ba[3] - self.ba[0]) % 4] = 1
 
-        if self.map[27 + (self.ba[0] // 4)] == 3:
+        if self.zenpai[27 + (self.ba[0] // 4)] == 3:
             zenbu_yaku[14 + (self.ba[0] // 4)] = 1
 
-        if self.map[31] == 3:
+        if self.zenpai[31] == 3:
             zenbu_yaku[18] = 1
-        if self.map[32] == 3:
+        if self.zenpai[32] == 3:
             zenbu_yaku[19] = 1
-        if self.map[33] == 3:
+        if self.zenpai[33] == 3:
             zenbu_yaku[20] = 1
 
         # 30:小三元
-        if self.map[31] + self.map[32] + self.map[33] == 8:
+        if self.zenpai[31] + self.zenpai[32] + self.zenpai[33] == 8:
             zenbu_yaku[30] = 2
 
         # 31:混老頭
-        if sum([self.map[i] for i in Agari.YAOCHU1]) == 14:
+        if sum([self.zenpai[i] for i in Agari.YAOCHU1]) == 14:
             zenbu_yaku[31] = 2
 
         return zenbu_yaku
@@ -390,7 +373,7 @@ class Agari():
                 break
             else:
                 if agari[12] in Agari.YAOCHU1:
-                    if sum(self.map[27:]) == 0:
+                    if sum(self.zenpai[27:]) == 0:
                         bubun_yaku[33] = 2 + self.menzen
                     else:
                         bubun_yaku[23] = 1 + self.menzen

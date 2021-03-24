@@ -40,6 +40,10 @@ class MahjongConsumer(AsyncWebsocketConsumer):
         if data_type == 'ready':
             await self.start_game(data['mode'])
 
+        if data_type == 'tsumoho':
+            self.game.tsumoho(self.player)
+            await self.send(self.player.actions)
+
         if data_type == 'ankan':
             self.game.ankan(data['body']['pais'], self.player)
             await self.send(self.player.actions)
