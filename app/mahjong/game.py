@@ -1,5 +1,9 @@
 from random import shuffle
 
+# TODO リーチ後の自動打牌
+# TODO リーチ後のカンできるかどうか
+# TODO 喰い替え禁止
+
 
 class Game():
     NORMAL_MODE = 0
@@ -23,8 +27,6 @@ class Game():
         self.kyotaku = 0
         self.players = []
         self.scores = [25000, 25000, 25000, 25000]
-        self.richis = [False, False, False, False]
-        self.richi_declarations = [False, False, False, False]
 
     # 汎用関数
     def open_kan_dora(self):
@@ -81,7 +83,13 @@ class Game():
             player.tehai = []
             player.kawa = []
             player.huro = []
+            player.richi_pc = None
+            # 再現用
             player.richi_declaration_pai = None
+
+        # リーチ初期化
+        self.richis = [False, False, False, False]
+        self.richi_declarations = [False, False, False, False]
 
         # 手番設定(最初は1引く)
         self.teban = (self.kyoku - 1) % 4
@@ -107,16 +115,10 @@ class Game():
         #     1, 2, 5, 9, 13, 18, 19, 21, 25, 29, 30, 33, 34,
         #     0, 4, 8, 12, 16, 17, 20, 24, 28, 32, 132, 128, 124,
         # ]
-        # self.yama = [i for i in range(136)]
-        # shuffle(self.yama)
-        # for i in original:
-        #     self.yama.pop(self.yama.index(i))
-        # self.yama = self.yama[:len(self.yama)-14] + original + self.yama[len(self.yama)-14:]
         original = [
-            0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48,
-            1, 5, 9, 13, 17, 21, 25, 29, 33, 52, 56, 60, 64,
-            2, 6, 10, 14, 18, 22, 26, 30, 34, 72, 76, 80, 84,
-            3, 7, 11, 15, 19, 23, 27, 31, 35, 88, 92, 96, 100
+            0, 4, 8, 12, 16, 20, 21, 22, 23, 24, 124, 125, 126,
+            36, 40, 44, 48, 52, 56, 57, 58, 59, 60, 128, 129, 130,
+            72, 76, 80, 84, 88, 92, 93, 94, 95, 96, 132, 133, 134
         ]
         self.yama = [i for i in range(136)]
         shuffle(self.yama)
@@ -148,6 +150,9 @@ class Game():
 
         # カンの個数
         self.n_kan = 0
+
+        # プログラムカウンター
+        self.pc = 0
 
         # 通知
         self.minkan_dicisions = dict()

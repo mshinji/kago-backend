@@ -55,10 +55,12 @@ class Player():
         # TODO 打牌とリーチ宣言の分離
         if richi:
             self.game.richi_declarations[self.position] = True
+            self.richi_pc = self.game.pc
         self.tehai.pop(self.tehai.index(pai))
         self.kawa.append(pai)
         self.game.last_dahai = pai
         self.game.last_teban = self.game.teban
+        self.game.pc += 1
 
     def richi_complete(self):
         self.game.scores[self.position] -= 1000
@@ -70,6 +72,7 @@ class Player():
             self.tehai.pop(self.tehai.index(i))
         self.huro.append({'type': 'ankan', 'pais': pais})
         self.game.n_kan += 1
+        self.game.pc += 10
 
     def pon(self, pais, pai):
         for i in pais:
@@ -77,6 +80,7 @@ class Player():
                 self.tehai.pop(self.tehai.index(i))
         self.huro.append({'type': 'pon', 'pais': pais})
         self.game.teban = self.position
+        self.game.pc += 10
 
     def chi(self, pais, pai):
         for i in pais:
@@ -84,6 +88,7 @@ class Player():
                 self.tehai.pop(self.tehai.index(i))
         self.huro.append({'type': 'chi', 'pais': pais})
         self.game.teban = self.position
+        self.game.pc += 10
 
     def cancel(self):
         self.game.minkan_dicisions[self.position] = [None, None]
@@ -151,6 +156,7 @@ class Player():
 
         return pai // 4 + 1
 
+    # TODO agari.pyに組み込む
     def get_jokyo_yaku(self):
         jokyo_yaku = [0] * 55
         zenpai = [0] * 34
@@ -166,14 +172,28 @@ class Player():
         if len(huro_types) - huro_types.count('ankan') == 0 and self.game.teban == self.position:
             jokyo_yaku[Agari.YAKU.index('門前清自摸和')] += 1
         # 立直
-        if self.game.richis[self.position]:
+        if self.game.richis[self.position] and not 0 <= self.richi_pc <= 3:
             jokyo_yaku[Agari.YAKU.index('立直')] += 1
-        # TODO 一発
+        # 一発
+        if self.game.richis[self.position] and self.game.pc - self.richi_pc <= 4:
+            jokyo_yaku[Agari.YAKU.index('一発')] += 1
         # TODO 槍槓
         # TODO 嶺上開花
-        # TODO 海底摸月
-        # TODO 河底撈魚
-        # TODO 両立直
+        # 海底摸月
+        if self.game.teban == self.position and len(self.game.yama) == 0:
+            jokyo_yaku[Agari.YAKU.index('海底摸月')] += 1
+        # 河底撈魚
+        if self.game.teban != self.position and len(self.game.yama) == 0:
+            jokyo_yaku[Agari.YAKU.index('河底撈魚')] += 1
+        # 両立直
+        if self.game.richis[self.position] and 0 <= self.richi_pc <= 3:
+            jokyo_yaku[Agari.YAKU.index('両立直')] += 2
+        # 天和
+        if self.game.pc == 0:
+            jokyo_yaku[Agari.YAKU.index('天和')] += 13
+        # 地和
+        if 1 <= self.game.pc <= 3:
+            jokyo_yaku[Agari.YAKU.index('地和')] += 13
         # ドラ/裏ドラ
         for i in range(self.game.n_dora):
             jokyo_yaku[Agari.YAKU.index('ドラ')] += zenpai[self.get_dora(self.game.dora[i])]
@@ -258,6 +278,9 @@ class Player():
             return False
         if self.game.n_kan >= 4:
             # print('カンの個数が4以上')
+            return False
+        if len(self.game.yama) <= 0:
+            # print('山に牌が1つ以上')
             return False
         if len(ankan) != 4:
             # print('牌の数が4つじゃない')

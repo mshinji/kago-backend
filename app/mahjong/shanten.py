@@ -38,7 +38,7 @@ def calc_shanten(tehai136, n_huro):
             min_shanten = min(min_shanten, get_temporary_shanten(tehai, n_huro) - 1)
             tehai[i] += 2
 
-    return min_shanten
+    return min([min_shanten, calc_shanten7(tehai), calc_shanten13(tehai)])
 
 # 一般手の一時的な向聴数の計算
 
