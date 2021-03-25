@@ -24,6 +24,7 @@ class Game():
         self.players = []
         self.scores = [25000, 25000, 25000, 25000]
         self.richis = [False, False, False, False]
+        self.richi_declarations = [False, False, False, False]
 
     # 汎用関数
     def open_kan_dora(self):
@@ -306,6 +307,14 @@ class Game():
         elif self.state == Game.NOTICE2_RECIEVE_STATE:
             if len(self.pon_dicisions) != 4 or len(self.chi_dicisions) != 4:
                 return False
+
+            # ロンじゃなければリーチ成立
+            for i in range(4):
+                if not self.richis[i] and self.richi_declarations[i]:
+                    self.players[i].richi_complete()
+                    for player in self.players:
+                        player.richi_complete_message()
+                    break
 
             # ポン決定
             for who, (pais, pai) in self.pon_dicisions.items():

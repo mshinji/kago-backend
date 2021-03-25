@@ -52,13 +52,18 @@ class Player():
         self.game.last_tsumo = pai
 
     def dahai(self, pai, richi):
-        # TODO リーチ処理
+        # TODO 打牌とリーチ宣言の分離
         if richi:
-            self.game.richis[self.position] = True
+            self.game.richi_declarations[self.position] = True
         self.tehai.pop(self.tehai.index(pai))
         self.kawa.append(pai)
         self.game.last_dahai = pai
         self.game.last_teban = self.game.teban
+
+    def richi_complete(self):
+        self.game.scores[self.position] -= 1000
+        self.game.richis[self.position] = True
+        self.game.kyotaku += 1
 
     def ankan(self, pais):
         for i in pais:
@@ -384,6 +389,15 @@ class Player():
                 'dummy': self.game.make_dummy(pai),
                 'who': (self.game.teban - self.position) % 4,
                 'richi': richi
+            }
+        })
+
+    def richi_complete_message(self):
+        self.actions.append({
+            'type': 'richi_complete_message',
+            'body': {
+                'scores': [self.game.scores[i % 4] for i in range(self.position, self.position + 4)],
+                'richis': [self.game.richis[i % 4] for i in range(self.position, self.position + 4)]
             }
         })
 
