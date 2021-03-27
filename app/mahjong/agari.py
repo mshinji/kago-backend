@@ -30,15 +30,15 @@ class Agari():
         self.huro = []
         for h in huro:
             if h['type'] == 'chi':
-                self.huro.append([h['pais'][0] // 4, -1, -1])
+                self.huro += [h['pais'][0] // 4, -1, -1]
             if h['type'] == 'pon':
-                self.huro.append([h['pais'][0] // 4, -1, -2])
+                self.huro += [h['pais'][0] // 4, -1, -2]
             if h['type'] == 'minkan':
-                self.huro.append([h['pais'][0] // 4, -1, -8])
+                self.huro += [h['pais'][0] // 4, -1, -8]
             if h['type'] == 'kakan':
-                self.huro.append([h['pais'][0] // 4, -1, -8])
+                self.huro += [h['pais'][0] // 4, -1, -8]
             if h['type'] == 'ankan':
-                self.huro.append([h['pais'][0] // 4, -1, -16])
+                self.huro += [h['pais'][0] // 4, -1, -16]
 
         self.machi = machi // 4
 
@@ -47,7 +47,7 @@ class Agari():
 
         self.zenpai = self.tehai[::]
         for i in range(0, len(self.huro), 3):
-            if huro[i+2] <= -2:
+            if self.huro[i+2] <= -2:
                 self.zenpai[self.huro[i]] += 3
             else:
                 self.zenpai[self.huro[i]] += 1

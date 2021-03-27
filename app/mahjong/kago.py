@@ -58,6 +58,9 @@ class Kago(Player):
         x = np.array([x], np.float32)
         return x
 
+    def decide_ankan(self):
+        return None
+
     def decide_richi(self):
         if not any([self.can_richi(dahai) for dahai in self.tehai]):
             return False
@@ -67,8 +70,19 @@ class Kago(Player):
 
         return bool(y[1] > y[0])
 
-    def decide_ankan(self):
-        return None
+    def decide_dahai(self, richi):
+        x = self.make_input()
+        y = Kago.DAHAI_NETWORK.predictor(x)[0].array
+        mk, mv = -1, -float('inf')
+
+        for i in range(34):
+            if y[i] > mv:
+                for p in range(i * 4 + 3, i * 4 - 1, -1):
+                    if p in self.tehai and self.can_dahai(p) and (not richi or self.can_richi(p)):
+                        mk, mv = p, y[i]
+                        break
+
+        return mk
 
     def decide_pon(self):
         x = self.make_input()
@@ -125,18 +139,4 @@ class Kago(Player):
                             break
 
         print('KAGO CHI', y, mk, last_dahai)
-        return mk
-
-    def decide_dahai(self, richi):
-        x = self.make_input()
-        y = Kago.DAHAI_NETWORK.predictor(x)[0].array
-        mk, mv = -1, -float('inf')
-
-        for i in range(34):
-            if y[i] > mv:
-                for p in range(i * 4 + 3, i * 4 - 1, -1):
-                    if p in self.tehai and self.can_dahai(p) and (not richi or self.can_richi(p)):
-                        mk, mv = p, y[i]
-                        break
-
         return mk

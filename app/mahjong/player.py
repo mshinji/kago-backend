@@ -91,9 +91,9 @@ class Player():
         self.game.pc += 10
 
     def cancel(self):
-        self.game.minkan_dicisions[self.position] = [None, None]
-        self.game.pon_dicisions[self.position] = [None, None]
-        self.game.chi_dicisions[self.position] = [None, None]
+        self.game.minkan_decisions[self.position] = [None, None]
+        self.game.pon_decisions[self.position] = [None, None]
+        self.game.chi_decisions[self.position] = [None, None]
 
     def reset_actions(self):
         self.actions = []
@@ -231,7 +231,7 @@ class Player():
         if self.game.teban != self.position:
             # print('手番じゃない')
             return False
-        if self.game.state != Game.NOTICE1_RECIEVE_STATE and self.game.state != Game.DAHAI_STATE:
+        if self.game.state not in [Game.NOTICE1_STATE, Game.DAHAI_STATE]:
             # print('ステートがカンでも打牌でもない')
             return False
         if dahai not in self.tehai:
@@ -250,7 +250,7 @@ class Player():
         if self.game.richis[self.position]:
             # print('リーチしている')
             return False
-        if self.game.state not in [Game.NOTICE1_SEND_STATE, Game.NOTICE1_RECIEVE_STATE, Game.DAHAI_STATE]:
+        if self.game.state not in [Game.TSUMO_STATE, Game.NOTICE1_STATE, Game.DAHAI_STATE]:
             # print('ステート異常')
             return False
         huro_types = [huro['type'] for huro in self.huro]
@@ -273,8 +273,8 @@ class Player():
         if self.game.teban != self.position:
             # print('手番じゃない')
             return False
-        if self.game.state != Game.NOTICE1_SEND_STATE and self.game.state != Game.NOTICE1_RECIEVE_STATE:
-            # print('ステートがカンじゃない')
+        if self.game.state != Game.TSUMO_STATE and self.game.state != Game.NOTICE1_STATE:
+            # print('ステート以上')
             return False
         if self.game.n_kan >= 4:
             # print('カンの個数が4以上')
@@ -304,7 +304,7 @@ class Player():
         if self.game.richis[self.position]:
             # print('リーチしている')
             return False
-        if self.game.state != Game.NOTICE2_SEND_STATE and self.game.state != Game.NOTICE2_RECIEVE_STATE:
+        if self.game.state != Game.DAHAI_STATE and self.game.state != Game.NOTICE2_STATE:
             # print('ステート異常')
             return False
         if pai not in pais:
@@ -326,7 +326,7 @@ class Player():
         if len(set(pais)) != 3:
             # print('牌番号に同じものがある')
             return False
-        print('pon', pais)
+        print('can_pon', pais)
         return True
 
     def can_chi(self, pais, pai):
@@ -336,7 +336,7 @@ class Player():
         if self.game.richis[self.position]:
             # print('リーチしている')
             return False
-        if self.game.state != Game.NOTICE2_SEND_STATE and self.game.state != Game.NOTICE2_RECIEVE_STATE:
+        if self.game.state != Game.DAHAI_STATE and self.game.state != Game.NOTICE2_STATE:
             # print('ステート異常')
             return False
         if pai not in pais:
@@ -365,7 +365,7 @@ class Player():
         if len(set(pais)) != 3:
             # print('牌番号に同じものがある')
             return False
-        print('chi', pais)
+        print('can_chi', pais)
         return True
 
     # アクション関数
@@ -502,7 +502,9 @@ class Player():
                     'dummies': self.game.make_dummies([i * 4 + j for j in range(4)])
                 })
 
-        if len(action['body']) != 0:
+        if len(action['body']) == 0:
+            self.game.ankan_decisions[self.position] = None
+        else:
             self.actions.append(action)
 
     # 通知2(ロン和/明槓/ポン/チー)
@@ -542,7 +544,7 @@ class Player():
                         done[i//4][0] = 1
 
         if len(action['body']) == 0:
-            self.game.pon_dicisions[self.position] = [None, None]
+            self.game.pon_decisions[self.position] = [None, None]
         else:
             self.actions.append(action)
 
@@ -570,6 +572,6 @@ class Player():
                 })
 
         if len(action['body']) == 0:
-            self.game.chi_dicisions[self.position] = [None, None]
+            self.game.chi_decisions[self.position] = [None, None]
         else:
             self.actions.append(action)

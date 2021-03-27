@@ -1,6 +1,5 @@
 from random import shuffle
 
-# TODO リーチ後の自動打牌
 # TODO リーチ後のカンできるかどうか
 # TODO 喰い替え禁止
 
@@ -13,12 +12,10 @@ class Game():
     KYOKU_START_STATE = -10
     TSUMO_STATE = 0
     # NOTICE1 - リーチ/暗槓/加槓
-    NOTICE1_SEND_STATE = 5
-    NOTICE1_RECIEVE_STATE = 10
+    NOTICE1_STATE = 10
     DAHAI_STATE = 20
-    # NOTICE2 - 明槓/ポン/チー
-    NOTICE2_SEND_STATE = 25
-    NOTICE2_RECIEVE_STATE = 30
+    # NOTICE2 - 明槓/ポン/チ
+    NOTICE2_STATE = 30
 
     def __init__(self):
         self.mode = Game.NORMAL_MODE
@@ -99,27 +96,29 @@ class Game():
         shuffle(self.dummy)
 
         # 山生成
-        self.yama = [i for i in range(136)]
-        shuffle(self.yama)
-
-        # カンテスト用山生成
-        # self.yama = [i for i in range(4 * 4 * 4, 136)]
+        # self.yama = [i for i in range(136)]
         # shuffle(self.yama)
-        # x = [i for i in range(4 * 4 * 4)]
-        # self.yama = self.yama + x
 
-        # オリジナル山生成
+        # カン
         # original = [
-        #     135, 134, 131, 130, 127, 126, 123, 122, 119, 118, 115, 114, 111,
-        #     133, 129, 125, 121, 117, 113, 110, 109, 108, 107, 106, 105, 104,
-        #     1, 2, 5, 9, 13, 18, 19, 21, 25, 29, 30, 33, 34,
-        #     0, 4, 8, 12, 16, 17, 20, 24, 28, 32, 132, 128, 124,
+        #     *list(range(0, 0 + 13)),
+        #     *list(range(36, 36 + 13)),
+        #     *list(range(72, 72 + 13)),
+        #     *list(range(108, 108 + 13))
         # ]
+        # チーしやすい
         original = [
-            0, 4, 8, 12, 16, 20, 21, 22, 23, 24, 124, 125, 126,
-            36, 40, 44, 48, 52, 56, 57, 58, 59, 60, 128, 129, 130,
-            72, 76, 80, 84, 88, 92, 93, 94, 95, 96, 132, 133, 134
+            0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48,
+            1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49,
+            2, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50,
+            3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47, 51
         ]
+        # 上がりやすい
+        # original = [
+        #     0, 4, 8, 12, 16, 20, 21, 22, 24, 25, 124, 125, 126,
+        #     36, 40, 44, 48, 52, 56, 57, 58, 60, 61, 128, 129, 130,
+        #     72, 76, 80, 84, 88, 92, 93, 94, 96, 97, 132, 133, 134
+        # ]
         self.yama = [i for i in range(136)]
         shuffle(self.yama)
         for i in original:
@@ -155,9 +154,9 @@ class Game():
         self.pc = 0
 
         # 通知
-        self.minkan_dicisions = dict()
-        self.pon_dicisions = dict()
-        self.chi_dicisions = dict()
+        self.minkan_decisions = dict()
+        self.pon_decisions = dict()
+        self.chi_decisions = dict()
 
         # 状態
         self.prev_state, self.state = self.state, Game.KYOKU_START_STATE
@@ -168,39 +167,24 @@ class Game():
             for player in self.players:
                 player.tsumoho_message(tsumoho)
 
-    def ankan(self, ankan, player):
-        if player.can_ankan(ankan):
-            player.ankan(ankan)
-            kan_dora = self.open_kan_dora()
-
-            # 暗槓と槓ドラの送信
-            for player in self.players:
-                player.ankan_message(ankan)
-                player.open_dora_message(kan_dora)
-
-            self.prev_state = Game.NOTICE1_RECIEVE_STATE
-            self.state = Game.TSUMO_STATE
-
-    def pon(self, pais, pai, player):
-        if player.can_pon(pais, pai):
-            self.pon_dicisions[player.position] = [pais, pai]
-            self.chi_dicisions[player.position] = [None, None]
-
-    def chi(self, pais, pai, player):
-        if player.can_chi(pais, pai):
-            self.pon_dicisions[player.position] = [None, None]
-            self.chi_dicisions[player.position] = [pais, pai]
+    def ankan(self, pais, player):
+        if player.can_ankan(pais):
+            self.ankan_decisions[player.position] = pais
 
     def dahai(self, dahai, richi, player):
         if player.can_dahai(dahai) and (not richi or player.can_richi(dahai)):
-            player.dahai(dahai, richi)
+            self.ankan_decisions[player.position] = None
+            self.dahai_decisions[player.position] = [dahai, richi]
 
-            # 打牌の送信
-            for player in self.players:
-                player.dahai_message(dahai, richi)
+    def pon(self, pais, pai, player):
+        if player.can_pon(pais, pai):
+            self.pon_decisions[player.position] = [pais, pai]
+            self.chi_decisions[player.position] = [None, None]
 
-            self.prev_state = self.DAHAI_STATE
-            self.state = Game.NOTICE2_SEND_STATE
+    def chi(self, pais, pai, player):
+        if player.can_chi(pais, pai):
+            self.pon_decisions[player.position] = [None, None]
+            self.chi_decisions[player.position] = [pais, pai]
 
     def next(self):
         # 行動のリセット
@@ -218,99 +202,91 @@ class Game():
 
         # ツモ状態
         elif self.state == Game.TSUMO_STATE:
-            if self.prev_state != Game.NOTICE1_RECIEVE_STATE:
+            # ツモ
+            if self.prev_state != Game.NOTICE1_STATE:
                 self.teban = (self.teban + 1) % 4
             tsumo = self.yama.pop()
             self.players[self.teban].tsumo(tsumo)
 
-            # ツモ送信
+            # 選択を格納
+            self.ankan_decisions = dict()
+            self.dahai_decisions = dict()  # 人間用にここで宣言
+
+            # 送信
             for player in self.players:
                 player.tsumo_message(tsumo)
-
-            self.prev_state, self.state = self.state, Game.NOTICE1_SEND_STATE
-            return True
-
-        # 通知1(ツモ和/リーチ/暗槓/加槓)送信状態
-        elif self.state == Game.NOTICE1_SEND_STATE:
-            # 通知送信
             self.players[self.teban].tsumoho_notice_message()
             self.players[self.teban].richi_notice_message()
             self.players[self.teban].ankan_notice_message()
 
-            self.prev_state = Game.NOTICE1_SEND_STATE
-            self.state = Game.NOTICE1_RECIEVE_STATE
+            # AIの選択を格納
+            player = self.players[self.teban]
+            if player.type == 'kago':
+                self.ankan_decisions[player.position] = player.decide_ankan()
+
+            self.prev_state = Game.TSUMO_STATE
+            self.state = Game.NOTICE1_STATE
             return True
 
-        # 通知1受信状態(AIのみ)
-        elif self.state == Game.NOTICE1_RECIEVE_STATE:
-            # 人間なら受信を待つ
-            if self.players[self.teban].type == 'human':
+        # 通知1受信状態
+        elif self.state == Game.NOTICE1_STATE:
+            if len(self.ankan_decisions) != 1:
                 return False
 
-            # AIなら暗槓判断を取得
-            if self.players[self.teban].type == 'kago':
-                ankan = self.players[self.teban].decide_ankan()
-                if ankan is None:
-                    self.prev_state = Game.NOTICE1_RECIEVE_STATE
-                    self.state = Game.DAHAI_STATE
-                    return True
-
-            # 暗槓がある場合
-            if ankan != []:
-                self.players[self.teban].ankan(ankan)
-                kan_dora = self.open_kan_dora()
+            # 暗槓の決定
+            who, pais = list(self.ankan_decisions.items())[0]
+            if pais is not None:
+                self.players[who].ankan(pais)
                 for player in self.players:
-                    player.ankan_message(ankan)
-                    player.open_dora_message(kan_dora)
+                    player.ankan_message(pais)
 
-                self.prev_state = Game.NOTICE1_RECIEVE_STATE
+                self.prev_state = Game.NOTICE1_STATE
                 self.state = Game.TSUMO_STATE
                 return True
 
-        # 打牌受信状態(AIのみ)
-        elif self.state == Game.DAHAI_STATE:
-            # 人間なら受信を待つ
-            if self.players[self.teban].type == 'human':
-                return False
+            # AIの選択を格納
+            player = self.players[self.teban]
+            if player.type == 'kago':
+                richi_decision = player.decide_richi()
+                self.dahai_decisions[player.position] = [player.decide_dahai(richi_decision), richi_decision]
 
-            # AIなら打牌判断を取得
-            richi = self.players[self.teban].decide_richi()
-            dahai = self.players[self.teban].decide_dahai(richi)
-            self.players[self.teban].dahai(dahai, richi)
-
-            # 打牌の送信
-            for player in self.players:
-                player.dahai_message(dahai, richi)
-
-            self.prev_state = Game.DAHAI_STATE
-            self.state = Game.NOTICE2_SEND_STATE
+            self.prev_state = Game.NOTICE1_STATE
+            self.state = Game.DAHAI_STATE
             return True
 
-        # 通知2(ロン和/明槓/ポン/チー)送信状態
-        elif self.state == Game.NOTICE2_SEND_STATE:
-            # 選択を格納
-            self.pon_dicisions = dict()
-            self.chi_dicisions = dict()
+        # 打牌受信状態
+        elif self.state == Game.DAHAI_STATE:
+            if len(self.dahai_decisions) != 1:
+                return False
 
-            # 通知送信
+            who, (pai, richi) = list(self.dahai_decisions.items())[0]
+
+            # 打牌
+            self.players[who].dahai(pai, richi)
+
+            # 選択を格納
+            self.pon_decisions = dict()
+            self.chi_decisions = dict()
+
+            # 送信
             for player in self.players:
+                player.dahai_message(pai, richi)
                 player.pon_notice_message()
                 player.chi_notice_message()
 
             # AIの選択を格納
             for player in self.players:
-                if player.type == 'kago' and player.position not in self.pon_dicisions:
-                    self.pon_dicisions[player.position] = [player.decide_pon(), self.last_dahai]
-                if player.type == 'kago' and player.position not in self.chi_dicisions:
-                    self.chi_dicisions[player.position] = [player.decide_chi(), self.last_dahai]
+                if player.type == 'kago':
+                    self.pon_decisions[player.position] = [player.decide_pon(), self.last_dahai]
+                    self.chi_decisions[player.position] = [player.decide_chi(), self.last_dahai]
 
-            self.prev_state = Game.NOTICE2_SEND_STATE
-            self.state = Game.NOTICE2_RECIEVE_STATE
+            self.prev_state = Game.DAHAI_STATE
+            self.state = Game.NOTICE2_STATE
             return True
 
         # 通知2受信状態
-        elif self.state == Game.NOTICE2_RECIEVE_STATE:
-            if len(self.pon_dicisions) != 4 or len(self.chi_dicisions) != 4:
+        elif self.state == Game.NOTICE2_STATE:
+            if len(self.pon_decisions) != 4 or len(self.chi_decisions) != 4:
                 return False
 
             # ロンじゃなければリーチ成立
@@ -322,27 +298,29 @@ class Game():
                     break
 
             # ポン決定
-            for who, (pais, pai) in self.pon_dicisions.items():
+            for who, (pais, pai) in self.pon_decisions.items():
                 if pais is not None:
                     self.players[who].pon(pais, pai)
                     for player in self.players:
                         player.pon_message(pais, pai)
 
-                    self.prev_state = Game.NOTICE2_RECIEVE_STATE
+                    self.prev_state = Game.NOTICE2_STATE
                     self.state = Game.DAHAI_STATE
+                    self.dahai_decisions = dict()
                     return True
 
             # チー決定
-            for who, (pais, pai) in self.chi_dicisions.items():
+            for who, (pais, pai) in self.chi_decisions.items():
                 if pais is not None:
                     self.players[who].chi(pais, pai)
                     for player in self.players:
                         player.chi_message(pais, pai)
 
-                    self.prev_state = Game.NOTICE2_RECIEVE_STATE
+                    self.prev_state = Game.NOTICE2_STATE
                     self.state = Game.DAHAI_STATE
+                    self.dahai_decisions = dict()
                     return True
 
-            self.prev_state = Game.NOTICE2_RECIEVE_STATE
+            self.prev_state = Game.NOTICE2_STATE
             self.state = Game.TSUMO_STATE
             return True

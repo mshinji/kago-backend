@@ -44,9 +44,13 @@ class MahjongConsumer(AsyncWebsocketConsumer):
             self.game.tsumoho(self.player)
             await self.send(self.player.actions)
 
+        if data_type == 'dahai':
+            self.game.dahai(data['body']['pai'], data['body']['richi'], self.player)
+            await self.next()
+
         if data_type == 'ankan':
             self.game.ankan(data['body']['pais'], self.player)
-            await self.send(self.player.actions)
+            await self.next()
 
         if data_type == 'pon':
             self.game.pon(data['body']['pais'], data['body']['pai'], self.player)
@@ -59,10 +63,6 @@ class MahjongConsumer(AsyncWebsocketConsumer):
         if data_type == 'cancel':
             self.player.cancel()
             await self.next()
-
-        if data_type == 'dahai':
-            self.game.dahai(data['body']['pai'], data['body']['richi'], self.player)
-            await self.send(self.player.actions)
 
         if data_type == 'next':
             await self.next()
