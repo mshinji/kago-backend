@@ -62,7 +62,7 @@ class Kago(Player):
         return None
 
     def decide_richi(self):
-        if not any([self.can_richi(dahai) for dahai in self.tehai]):
+        if not any([self.can_richi_declare(dahai) for dahai in self.tehai]):
             return False
 
         x = self.make_input()
@@ -70,17 +70,18 @@ class Kago(Player):
 
         return bool(y[1] > y[0])
 
-    def decide_dahai(self, richi):
+    def decide_dahai(self):
         x = self.make_input()
         y = Kago.DAHAI_NETWORK.predictor(x)[0].array
         mk, mv = -1, -float('inf')
 
         for i in range(34):
-            if y[i] > mv:
-                for p in range(i * 4 + 3, i * 4 - 1, -1):
-                    if p in self.tehai and self.can_dahai(p) and (not richi or self.can_richi(p)):
-                        mk, mv = p, y[i]
-                        break
+            if y[i] < mv:
+                continue
+            for p in range(i * 4 + 3, i * 4 - 1, -1):
+                if p in self.tehai and self.can_dahai(p):
+                    mk, mv = p, y[i]
+                    break
 
         return mk
 
@@ -103,7 +104,7 @@ class Kago(Player):
                             mk, mv = [last_dahai, a, b], y[i]
                             break
 
-        print('KAGO PON', y, mk, last_dahai)
+        # print('KAGO PON', y, mk, last_dahai)
         return mk
 
     def decide_chi(self):
@@ -138,5 +139,5 @@ class Kago(Player):
                             mk, mv = [last_dahai, a, b], y[i]
                             break
 
-        print('KAGO CHI', y, mk, last_dahai)
+        # print('KAGO CHI', y, mk, last_dahai)
         return mk

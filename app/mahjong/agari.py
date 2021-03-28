@@ -1,12 +1,7 @@
-# !/usr/bin/python
-# coding: UTF-8
-
 from itertools import combinations
 
 
-# TODO 暗槓後の和了りがバグってる
-
-class Agari():
+class Agari:
     # 定数
     YAOCHU1 = [0, 8, 9, 17, 18, 26, 27, 28, 29, 30, 31, 32, 33]
     YAOCHU2 = [0, 6, 9, 15, 18, 24]
@@ -22,13 +17,16 @@ class Agari():
             '九蓮宝燈', '純正九蓮宝燈', '国士無双', '国士無双１３面', '大四喜',
             '小四喜', '四槓子', 'ドラ', '裏ドラ', '赤ドラ']
 
-    def __init__(self, tehai, huro, machi, ba, jokyo_yaku):
+    def __init__(self, player, game):
+        self.player = player
+        self.game = game
+
         self.tehai = [0] * 34
-        for i in tehai:
+        for i in player.tehai:
             self.tehai[i // 4] += 1
 
         self.huro = []
-        for h in huro:
+        for h in player.huro:
             if h['type'] == 'chi':
                 self.huro += [h['pais'][0] // 4, -1, -1]
             if h['type'] == 'pon':
@@ -40,10 +38,10 @@ class Agari():
             if h['type'] == 'ankan':
                 self.huro += [h['pais'][0] // 4, -1, -16]
 
-        self.machi = machi // 4
+        self.machi = game.last_tsumo // 4
 
         # [kyoku, honba, kyotaku, who, fromWho, (paoWho)]
-        self.ba = ba
+        self.ba = [game.kyoku, game.honba, game.kyotaku, player.position, player.position]
 
         self.zenpai = self.tehai[::]
         for i in range(0, len(self.huro), 3):
@@ -57,10 +55,10 @@ class Agari():
         self.agaris = []
 
         self.menzen = 1 if len(self.huro) - self.huro.count(-16) * 3 == 0 else 0
-        self.tsumo = 1 if ba[3] == ba[4] else 0
+        self.tsumo = 1 if self.ba[3] == self.ba[4] else 0
 
         # 状況役と全部役を定義
-        self.jokyo_yaku = jokyo_yaku
+        self.jokyo_yaku = self.get_jokyo_yaku()
         self.zenbu_yaku = self.get_zenbu_yaku()
 
         # 一般手の和了形を全て抜き出す
@@ -95,9 +93,6 @@ class Agari():
                     if hu == 20 and self.menzen:
                         bubun_yaku[7] = 1
 
-                    print('状況', self.jokyo_yaku)
-                    print('全部', self.zenbu_yaku)
-                    print('部分', bubun_yaku)
                     han = sum(self.jokyo_yaku) + sum(self.zenbu_yaku) + sum(bubun_yaku)
                     if han == sum([self.jokyo_yaku[Agari.YAKU.index(yaku)] for yaku in ['ドラ', '裏ドラ', '赤ドラ']]):
                         han == 0
@@ -273,6 +268,18 @@ class Agari():
 
         return hu
 
+    def get_dora(self, pai):
+        if pai // 4 in [8, 17, 26]:
+            return pai // 4 - 8
+
+        if pai // 4 == 30:
+            return 27
+
+        if pai // 4 == 33:
+            return 31
+
+        return pai // 4 + 1
+
     # 全部役
     def get_zenbu_yaku(self):
         zenbu_yaku = [0 for i in range(0, 55)]
@@ -418,3 +425,50 @@ class Agari():
             bubun_yaku[29] = 2
 
         return bubun_yaku
+
+    def get_jokyo_yaku(self):
+        jokyo_yaku = [0] * 55
+        zenpai = [0] * 34
+        huro_types = []
+        for pai in self.player.tehai:
+            zenpai[pai // 4] += 1
+        for huro in self.player.huro:
+            for pai in huro['pais']:
+                zenpai[pai // 4] += 1
+            huro_types.append(huro['type'])
+
+        # 門前自摸
+        if len(huro_types) - huro_types.count('ankan') == 0 and self.game.teban == self.player.position:
+            jokyo_yaku[Agari.YAKU.index('門前清自摸和')] += 1
+        # 立直
+        if self.player.is_richi_complete and not 0 <= self.player.richi_pc <= 3:
+            jokyo_yaku[Agari.YAKU.index('立直')] += 1
+        # 一発
+        if self.player.is_richi_complete and self.game.pc - self.player.richi_pc <= 4:
+            jokyo_yaku[Agari.YAKU.index('一発')] += 1
+        # TODO 槍槓
+        # TODO 嶺上開花
+        # 海底摸月
+        if self.game.teban == self.player.position and len(self.game.yama) == 0:
+            jokyo_yaku[Agari.YAKU.index('海底摸月')] += 1
+        # 河底撈魚
+        if self.game.teban != self.player.position and len(self.game.yama) == 0:
+            jokyo_yaku[Agari.YAKU.index('河底撈魚')] += 1
+        # 両立直
+        if self.player.is_richi_complete and 0 <= self.player.richi_pc <= 3:
+            jokyo_yaku[Agari.YAKU.index('両立直')] += 2
+        # 天和
+        if self.game.pc == 0:
+            jokyo_yaku[Agari.YAKU.index('天和')] += 13
+        # 地和
+        if 1 <= self.game.pc <= 3:
+            jokyo_yaku[Agari.YAKU.index('地和')] += 13
+        # ドラ/裏ドラ
+        for i in range(self.game.n_dora):
+            jokyo_yaku[Agari.YAKU.index('ドラ')] += zenpai[self.get_dora(self.game.dora[i])]
+            jokyo_yaku[Agari.YAKU.index('裏ドラ')] += zenpai[self.get_dora(self.game.dora[i + 5])]
+        # 赤ドラ
+        for pai in [16, 52, 88]:
+            jokyo_yaku[Agari.YAKU.index('赤ドラ')] += self.tehai.count(pai)
+
+        return jokyo_yaku
