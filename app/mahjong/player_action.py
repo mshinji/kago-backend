@@ -26,7 +26,10 @@ class PlayerAction:
             self.game.scores[i] += score_movement
 
         self.game.kyotaku = 0
-        self.game.honba += 1
+        if self.position == self.game.kyoku % 4:
+            self.game.honba += 1
+        else:
+            self.game.honba = 0
         if self.position != self.game.kyoku % 4:
             self.game.kyoku += 1
 
@@ -92,7 +95,10 @@ class PlayerAction:
             self.game.scores[i] += score_movement
 
         self.game.kyotaku = 0
-        self.game.honba += 1
+        if self.position == self.game.kyoku % 4:
+            self.game.honba += 1
+        else:
+            self.game.honba = 0
         if self.position != self.game.kyoku % 4:
             self.game.kyoku += 1
 
