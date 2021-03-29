@@ -25,6 +25,11 @@ class PlayerAction:
         for i, score_movement in enumerate(score_movements):
             self.game.scores[i] += score_movement
 
+        self.game.kyotaku = 0
+        self.game.honba += 1
+        if self.position != self.game.kyoku % 4:
+            self.game.kyoku += 1
+
         return {
             'yakus': yakus,
             'doras': doras,
@@ -85,6 +90,11 @@ class PlayerAction:
         score_movements = agari.score_movements
         for i, score_movement in enumerate(score_movements):
             self.game.scores[i] += score_movement
+
+        self.game.kyotaku = 0
+        self.game.honba += 1
+        if self.position != self.game.kyoku % 4:
+            self.game.kyoku += 1
 
         return {
             'yakus': yakus,

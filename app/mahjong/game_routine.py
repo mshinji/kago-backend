@@ -9,6 +9,8 @@ class GameRoutine:
         for player in self.players:
             player.reset_actions()
 
+        print('STATE:', self.state)
+
         # 局開始状態
         if self.state == GameBase.KYOKU_START_STATE:
             self.start_kyoku()
@@ -131,10 +133,13 @@ class GameRoutine:
             for who, tf in self.ronho_decisions.items():
                 if not tf:
                     continue
-
                 ronho = self.players[who].ronho()
                 for player in self.players:
                     player.ronho_message(ronho)
+
+                self.prev_state = GameBase.NOTICE2_STATE
+                self.state = GameBase.AGARI_STATE
+                return True
 
             # ロンじゃなければリーチ成立
             for player in self.players:
@@ -171,3 +176,15 @@ class GameRoutine:
             self.prev_state = GameBase.NOTICE2_STATE
             self.state = GameBase.TSUMO_STATE
             return True
+
+        # 和了り状態
+        elif self.state == GameBase.AGARI_STATE:
+            pass
+
+        # 流局状態
+        elif self.state == GameBase.RYUKYOKU_STATE:
+            pass
+
+        # 終局状態
+        elif self.state == GameBase.END_STATE:
+            pass

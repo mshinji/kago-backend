@@ -69,6 +69,10 @@ class MahjongConsumer(AsyncWebsocketConsumer):
             self.game.chi(data['body']['pais'], data['body']['pai'], self.player)
             await self.next()
 
+        if data_type == 'next_kyoku':
+            self.game.next_kyoku()
+            await self.next()
+
         if data_type == 'cancel':
             self.player.cancel()
             await self.next()

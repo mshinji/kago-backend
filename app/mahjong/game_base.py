@@ -5,11 +5,14 @@ class GameBase:
     INITIAL_STATE = -100
     KYOKU_START_STATE = -10
     TSUMO_STATE = 0
-    # NOTICE1 - リーチ/暗槓/加槓
+    # NOTICE1 - リßーチ/暗槓/加槓
     NOTICE1_STATE = 10
     DAHAI_STATE = 20
     # NOTICE2 - 明槓/ポン/チ
     NOTICE2_STATE = 30
+    AGARI_STATE = 40
+    RYUKYOKU_STATE = 50
+    END_STATE = 60
 
     def __init__(self):
         self.mode = GameBase.NORMAL_MODE

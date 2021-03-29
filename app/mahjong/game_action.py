@@ -149,3 +149,9 @@ class GameAction:
             self.ronho_decisions[player.position] = False
             self.pon_decisions[player.position] = [None, None]
             self.chi_decisions[player.position] = [pais, pai]
+
+    def next_kyoku(self):
+        if self.state == GameBase.AGARI_STATE:
+            self.state = GameBase.KYOKU_START_STATE
+        elif self.state == GameBase.RYUKYOKU_STATE:
+            self.state = GameBase.KYOKU_START_STATE
