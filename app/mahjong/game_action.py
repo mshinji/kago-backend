@@ -51,19 +51,19 @@ class GameAction:
         #     3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47, 51
         # ]
         # ポンしやすい
-        original = [
-            108, 112, 116,
-            0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 37, 76, 80,
-            1, 5, 9, 13, 17, 21, 25, 29, 33, 40, 41, 77, 81,
-            2, 6, 10, 14, 18, 22, 26, 30, 34, 44, 45, 78, 82,
-            109, 110, 111, 113, 114, 115, 117, 118, 119, 120, 121, 122, 123,
-        ]
-        # 上がりやすい
         # original = [
-        #     0, 4, 8, 12, 16, 20, 21, 22, 24, 25, 124, 125, 126,
-        #     36, 40, 44, 48, 52, 56, 57, 58, 60, 61, 128, 129, 130,
-        #     72, 76, 80, 84, 88, 92, 93, 94, 96, 97, 132, 133, 134
+        #     108, 112, 116,
+        #     0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 37, 76, 80,
+        #     1, 5, 9, 13, 17, 21, 25, 29, 33, 40, 41, 77, 81,
+        #     2, 6, 10, 14, 18, 22, 26, 30, 34, 44, 45, 78, 82,
+        #     109, 110, 111, 113, 114, 115, 117, 118, 119, 120, 121, 122, 123,
         # ]
+        # 上がりやすい
+        original = [
+            0, 4, 8, 12, 16, 20, 21, 22, 24, 25, 124, 125, 126,
+            36, 40, 44, 48, 52, 56, 57, 58, 60, 61, 128, 129, 130,
+            72, 76, 80, 84, 88, 92, 93, 94, 96, 97, 132, 133, 134
+        ]
         self.yama = [i for i in range(136)]
         shuffle(self.yama)
         for i in original:
@@ -99,6 +99,7 @@ class GameAction:
         self.pc = 0
 
         # 通知
+        self.ronho_decisions = dict()
         self.minkan_decisions = dict()
         self.pon_decisions = dict()
         self.chi_decisions = dict()
@@ -128,12 +129,20 @@ class GameAction:
         if player.can_dahai(dahai):
             self.dahai_decisions[player.position] = dahai
 
+    def ronho(self, player):
+        if player.can_ronho():
+            self.ronho_decisions[player.position] = True
+            self.pon_decisions[player.position] = [None, None]
+            self.chi_decisions[player.position] = [None, None]
+
     def pon(self, pais, pai, player):
         if player.can_pon(pais, pai):
+            self.ronho_decisions[player.position] = False
             self.pon_decisions[player.position] = [pais, pai]
             self.chi_decisions[player.position] = [None, None]
 
     def chi(self, pais, pai, player):
         if player.can_chi(pais, pai):
+            self.ronho_decisions[player.position] = False
             self.pon_decisions[player.position] = [None, None]
             self.chi_decisions[player.position] = [pais, pai]

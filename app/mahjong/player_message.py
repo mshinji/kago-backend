@@ -76,6 +76,16 @@ class PlayerMessage:
             }
         })
 
+    def ronho_message(self, ronho):
+        ronho = ronho.copy()
+        ronho['scores'] = [ronho['scores'][i] for i, _ in self.prange()]
+        ronho['scoreMovements'] = [ronho['scoreMovements'][i] for i, _ in self.prange()]
+
+        self.actions.append({
+            'type': 'ronho_message',
+            'body': ronho
+        })
+
     def pon_message(self, pais, pai):
         self.actions.append({
             'type': 'pon_message',
@@ -157,6 +167,12 @@ class PlayerMessage:
             self.actions.append(action)
 
     # 通知2(ロン和/明槓/ポン/チー)
+    def ronho_notice_message(self):
+        if self.can_ronho():
+            self.actions.append({'type': 'ronho_notice_message'})
+        else:
+            self.game.ronho_decisions[self.position] = False
+
     def pon_notice_message(self):
         action = {
             'type': 'pon_notice_message',

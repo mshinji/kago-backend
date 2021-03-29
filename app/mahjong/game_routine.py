@@ -1,5 +1,7 @@
 from .game_base import GameBase
 
+# TODO ダブロン検証
+
 
 class GameRoutine:
     def next(self):
@@ -95,6 +97,7 @@ class GameRoutine:
             self.players[who].richi(pai)
 
             # 選択を格納
+            self.ronho_decisions = dict()
             self.pon_decisions = dict()
             self.chi_decisions = dict()
 
@@ -104,12 +107,14 @@ class GameRoutine:
                 if pai in [player.richi_pai for player in self.players]:
                     player.richi_bend_message(pai)
 
+                player.ronho_notice_message()
                 player.pon_notice_message()
                 player.chi_notice_message()
 
             # AIの選択を格納
             for player in self.players:
                 if player.type == 'kago':
+                    self.ronho_decisions[player.position] = False
                     self.pon_decisions[player.position] = [player.decide_pon(), self.last_dahai]
                     self.chi_decisions[player.position] = [player.decide_chi(), self.last_dahai]
 
@@ -119,8 +124,17 @@ class GameRoutine:
 
         # 通知2受信状態
         elif self.state == GameBase.NOTICE2_STATE:
-            if len(self.pon_decisions) != 4 or len(self.chi_decisions) != 4:
+            if len(self.ronho_decisions) != 4 or len(self.pon_decisions) != 4 or len(self.chi_decisions) != 4:
                 return False
+
+            # ロン決定
+            for who, tf in self.ronho_decisions.items():
+                if not tf:
+                    continue
+
+                ronho = self.players[who].ronho()
+                for player in self.players:
+                    player.ronho_message(ronho)
 
             # ロンじゃなければリーチ成立
             for player in self.players:

@@ -65,10 +65,36 @@ class PlayerAction:
         if self.is_richi_declare and self.richi_pai not in self.kawa:
             self.richi_pai = pai
 
+    def ronho(self):
+        agari = Agari(self, self.game)
+        yakus = []
+        for i in range(len(Agari.YAKU)):
+            if agari.yaku[i] > 0:
+                yakus.append({'name': Agari.YAKU[i], 'han': agari.yaku[i]})
+
+        doras = []
+        uradoras = []
+        for i in range(5):
+            if i < self.game.n_dora:
+                doras.append(self.game.dora[i])
+                uradoras.append(self.game.dora[i+5])
+            else:
+                doras.append(self.game.make_dummy(self.game.dora[i]))
+                uradoras.append(self.game.make_dummy(self.game.dora[i+5]))
+
+        score_movements = agari.score_movements
+        for i, score_movement in enumerate(score_movements):
+            self.game.scores[i] += score_movement
+
+        return {
+            'yakus': yakus,
+            'doras': doras,
+            'uradoras': uradoras,
+            'scores': self.game.scores,
+            'scoreMovements': score_movements,
+        }
+
     def pon(self, pais, pai):
-        print('last_teban:', self.game.last_teban)
-        print('position:', self.position)
-        # print('kawa'
         for i in pais:
             if i != pai:
                 self.tehai.pop(self.tehai.index(i))
@@ -84,8 +110,6 @@ class PlayerAction:
             if i != pai:
                 self.tehai.pop(self.tehai.index(i))
         self.huro.append({'type': 'chi', 'pais': pais})
-        print('teban', self.game.last_teban)
-        print('kawa', self.kawa[self.game.last_teban])
         self.game.players[self.game.last_teban].kawa.pop(
             self.game.players[self.game.last_teban].kawa.index(pai)
         )
@@ -97,6 +121,7 @@ class PlayerAction:
             self.game.ankan_decisions[self.position] = None
             self.game.richi_decisions[self.position] = False
 
+        self.game.ronho_decisions[self.position] = False
         self.game.minkan_decisions[self.position] = [None, None]
         self.game.pon_decisions[self.position] = [None, None]
         self.game.chi_decisions[self.position] = [None, None]

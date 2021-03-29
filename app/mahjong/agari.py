@@ -38,10 +38,13 @@ class Agari:
             if h['type'] == 'ankan':
                 self.huro += [h['pais'][0] // 4, -1, -16]
 
-        self.machi = game.last_tsumo // 4
-
-        # [kyoku, honba, kyotaku, who, fromWho, (paoWho)]
-        self.ba = [game.kyoku, game.honba, game.kyotaku, player.position, player.position]
+        if game.last_tsumo in player.tehai:
+            self.machi = game.last_tsumo // 4
+            self.ba = [game.kyoku, game.honba, game.kyotaku, player.position, player.position]
+        else:
+            self.tehai[game.last_dahai // 4] += 1
+            self.machi = game.last_dahai // 4
+            self.ba = [game.kyoku, game.honba, game.kyotaku, player.position, game.last_teban]
 
         self.zenpai = self.tehai[::]
         for i in range(0, len(self.huro), 3):
@@ -112,7 +115,7 @@ class Agari:
 
                     if hu * (2 ** han) > max[0] * (2 ** max[1]):
                         max = [hu, han]
-                        self.bubun_yaku = bubun_yaku
+                        self.bubun_yaku = bubun_yaku[::]
 
         # 七対子
         if self.tehai.count(2) == 7:
@@ -418,7 +421,6 @@ class Agari:
         # 28:対々和
         if sum([1 for i in range(2, 3*4, 3) if agari[i] <= -2]) == 4:
             bubun_yaku[28] = 2
-            print(agari)
 
         # 29:三暗刻
         if sum([1 for i in range(2, 3*4, 3) if agari[i] == -4 or agari[i] == -16]) == 3:

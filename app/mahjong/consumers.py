@@ -25,7 +25,8 @@ class MahjongConsumer(AsyncWebsocketConsumer):
 
     async def send(self, data):
         data = json.dumps(data)
-        print('send', data)
+        print('send:', data)
+        print()
         await super().send(text_data=data)
 
     async def receive(self, text_data):
@@ -54,6 +55,10 @@ class MahjongConsumer(AsyncWebsocketConsumer):
 
         if data_type == 'ankan':
             self.game.ankan(data['body']['pais'], self.player)
+            await self.next()
+
+        if data_type == 'ronho':
+            self.game.ronho(self.player)
             await self.next()
 
         if data_type == 'pon':

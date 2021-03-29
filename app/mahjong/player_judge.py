@@ -6,18 +6,18 @@ from .shanten import calc_shanten
 class PlayerJudge:
     def can_tsumoho(self):
         if self.game.teban != self.position:
-            print('手番じゃない')
+            # print('手番じゃない')
             return False
         # TODO calc_chantenの方をこっちに合わせる
         tehai = [0] * 136
         for i in self.tehai:
             tehai[i] += 1
         if calc_shanten(tehai, len(self.huro)) >= 0:
-            print('和了ってない')
+            # print('和了ってない')
             return False
         # TODO パオ
         if Agari(self, self.game).score_movements == [0, 0, 0, 0]:
-            print('役無し')
+            # print('役無し')
             return False
 
         return True
@@ -45,7 +45,7 @@ class PlayerJudge:
             return False
         richi = self.is_richi_declare and not self.is_richi_complete
         if richi and not self.is_tenpai(dahai):
-            print('聴牌しないリーチ宣言牌')
+            # print('聴牌しないリーチ宣言牌')
             return False
 
         return True
@@ -73,16 +73,6 @@ class PlayerJudge:
 
         return True
 
-    # def can_richi_declare(self, pai):
-    #     if not self.is_richi_declare:
-    #         print('既にリーチ宣言している')
-    #         return False
-    #     if self.richi_pai in self.kawa:
-    #         print('すでに宣言している')
-    #         return False
-
-    #     return True
-
     def can_ankan(self, ankan):
         if self.game.teban != self.position:
             # print('手番じゃない')
@@ -109,6 +99,24 @@ class PlayerJudge:
             if i not in self.tehai:
                 # print('手牌に含まれていない牌がある')
                 return False
+        return True
+
+    def can_ronho(self):
+        if self.game.last_dahai in self.kawa:
+            print('本人')
+            return False
+        # TODO calc_chantenの方をこっちに合わせる
+        tehai = [0] * 136
+        for i in self.tehai + [self.game.last_dahai]:
+            tehai[i] += 1
+        if calc_shanten(tehai, len(self.huro)) >= 0:
+            print('和了ってない')
+            return False
+        # TODO パオ
+        if Agari(self, self.game).score_movements == [0, 0, 0, 0]:
+            print('役無し')
+            return False
+
         return True
 
     def can_pon(self, pais, pai):
