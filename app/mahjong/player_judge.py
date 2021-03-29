@@ -102,19 +102,19 @@ class PlayerJudge:
         return True
 
     def can_ronho(self):
-        if self.game.last_dahai in self.kawa:
-            print('本人')
+        if self.game.teban == self.position:
+            # print('捨てた本人')
             return False
         # TODO calc_chantenの方をこっちに合わせる
         tehai = [0] * 136
         for i in self.tehai + [self.game.last_dahai]:
             tehai[i] += 1
         if calc_shanten(tehai, len(self.huro)) >= 0:
-            print('和了ってない')
+            # print('和了ってない')
             return False
         # TODO パオ
         if Agari(self, self.game).score_movements == [0, 0, 0, 0]:
-            print('役無し')
+            # print('役無し')
             return False
 
         return True

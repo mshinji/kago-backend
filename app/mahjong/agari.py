@@ -38,7 +38,7 @@ class Agari:
             if h['type'] == 'ankan':
                 self.huro += [h['pais'][0] // 4, -1, -16]
 
-        if game.last_tsumo in player.tehai:
+        if game.teban == player.position:
             self.machi = game.last_tsumo // 4
             self.ba = [game.kyoku, game.honba, game.kyotaku, player.position, player.position]
         else:
@@ -460,10 +460,10 @@ class Agari:
         if self.player.is_richi_complete and 0 <= self.player.richi_pc <= 3:
             jokyo_yaku[Agari.YAKU.index('両立直')] += 2
         # 天和
-        if self.game.pc == 0:
+        if self.game.pc == 0 and self.game.teban == self.player.position:
             jokyo_yaku[Agari.YAKU.index('天和')] += 13
         # 地和
-        if 1 <= self.game.pc <= 3:
+        if 1 <= self.game.pc <= 3 and self.game.teban == self.player.position:
             jokyo_yaku[Agari.YAKU.index('地和')] += 13
         # ドラ/裏ドラ
         for i in range(self.game.n_dora):
