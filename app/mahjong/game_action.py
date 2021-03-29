@@ -5,7 +5,7 @@ from .game_base import GameBase
 
 class GameAction:
     def start_game(self):
-        # shuffle(self.players)
+        shuffle(self.players)
         for i, player in enumerate(self.players):
             player.position = i
 
@@ -32,8 +32,8 @@ class GameAction:
         shuffle(self.dummy)
 
         # 山生成
-        # self.yama = [i for i in range(136)]
-        # shuffle(self.yama)
+        self.yama = [i for i in range(136)]
+        shuffle(self.yama)
 
         # カン
         # original = [
@@ -65,13 +65,13 @@ class GameAction:
         #     72, 76, 80, 84, 88, 92, 93, 94, 96, 97, 132, 133, 134
         # ]
         # 国士無双13面
-        original = [0 * 4, 8 * 4, 9 * 4, 17 * 4, 18 * 4, 26 * 4] + [i for i in range(4 * 27, 4 * 34, 4)]
+        # original = [0 * 4, 8 * 4, 9 * 4, 17 * 4, 18 * 4, 26 * 4] + [i for i in range(4 * 27, 4 * 34, 4)]
 
-        self.yama = [i for i in range(136)]
-        shuffle(self.yama)
-        for i in original:
-            self.yama.pop(self.yama.index(i))
-        self.yama = self.yama[:len(self.yama)-14] + original + self.yama[len(self.yama)-14:]
+        # self.yama = [i for i in range(136)]
+        # shuffle(self.yama)
+        # for i in original:
+        #     self.yama.pop(self.yama.index(i))
+        # self.yama = self.yama[:len(self.yama)-14] + original + self.yama[len(self.yama)-14:]
 
         # ドラ生成
         self.dora = []

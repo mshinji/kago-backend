@@ -58,6 +58,12 @@ class Kago(Player):
         x = np.array([x], np.float32)
         return x
 
+    def decide_tsumoho(self):
+        if self.can_tsumoho():
+            return True
+        else:
+            return False
+
     def decide_ankan(self):
         return None
 
@@ -84,6 +90,12 @@ class Kago(Player):
                     break
 
         return mk
+
+    def decide_ronho(self):
+        if self.can_ronho():
+            return True
+        else:
+            return False
 
     def decide_pon(self):
         x = self.make_input()

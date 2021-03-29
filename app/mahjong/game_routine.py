@@ -20,6 +20,12 @@ class GameRoutine:
 
         # ツモ状態
         elif self.state == GameBase.TSUMO_STATE:
+            if len(self.yama) == 0:
+                for player in self.players:
+                    player.ryukyoku_message()
+                self.prev_state = GameBase.TSUMO_STATE
+                self.state = GameBase.RYUKYOKU_STATE
+
             # ツモ
             if self.prev_state != GameBase.NOTICE1_STATE:
                 self.teban = (self.teban + 1) % 4
@@ -41,7 +47,7 @@ class GameRoutine:
             # AIの選択を格納
             player = self.players[self.teban]
             if player.type == 'kago':
-                self.tsumoho_decisions[player.position] = False
+                self.tsumoho_decisions[player.position] = player.decide_tsumoho()
                 self.richi_decisions[player.position] = player.decide_richi()
                 self.ankan_decisions[player.position] = player.decide_ankan()
 
@@ -51,9 +57,6 @@ class GameRoutine:
 
         # 通知1受信状態
         elif self.state == GameBase.NOTICE1_STATE:
-            print('TSUMOHO', self.tsumoho_decisions)
-            print('RICHI', self.richi_decisions)
-            print('ankan', self.ankan_decisions)
             if len(self.tsumoho_decisions) != 1 or len(self.richi_decisions) != 1 or len(self.ankan_decisions) != 1:
                 return False
 
@@ -130,7 +133,7 @@ class GameRoutine:
             # AIの選択を格納
             for player in self.players:
                 if player.type == 'kago':
-                    self.ronho_decisions[player.position] = False
+                    self.ronho_decisions[player.position] = player.decide_ronho()
                     self.pon_decisions[player.position] = [player.decide_pon(), self.last_dahai]
                     self.chi_decisions[player.position] = [player.decide_chi(), self.last_dahai]
 
