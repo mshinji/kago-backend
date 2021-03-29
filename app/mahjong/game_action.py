@@ -112,18 +112,20 @@ class GameAction:
 
     def tsumoho(self, player):
         if player.can_tsumoho():
-            tsumoho = player.tsumoho()
-            for player in self.players:
-                player.tsumoho_message(tsumoho)
+            self.tsumoho_decisions[player.position] = True
+            self.ankan_decisions[player.position] = None
+            self.richi_decisions[player.position] = False
 
     def ankan(self, pais, player):
         if player.can_ankan(pais):
+            self.tsumoho_decisions[player.position] = False
             self.ankan_decisions[player.position] = pais
             self.richi_decisions[player.position] = False
 
     def richi_declare(self, player):
         for i in player.tehai:
             if player.can_richi_declare(i):
+                self.tsumoho_decisions[player.position] = False
                 self.ankan_decisions[player.position] = None
                 self.richi_decisions[player.position] = True
                 break

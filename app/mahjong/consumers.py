@@ -43,7 +43,7 @@ class MahjongConsumer(AsyncWebsocketConsumer):
 
         if data_type == 'tsumoho':
             self.game.tsumoho(self.player)
-            await self.send(self.player.actions)
+            await self.next()
 
         if data_type == 'dahai':
             self.game.dahai(data['body']['pai'], self.player)

@@ -124,6 +124,8 @@ class PlayerMessage:
     def tsumoho_notice_message(self):
         if self.can_tsumoho():
             self.actions.append({'type': 'tsumoho_notice_message'})
+        else:
+            self.game.tsumoho_decisions[self.position] = False
 
     def richi_notice_message(self):
         for i in self.tehai:

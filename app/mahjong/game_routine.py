@@ -9,8 +9,6 @@ class GameRoutine:
         for player in self.players:
             player.reset_actions()
 
-        print('STATE:', self.state)
-
         # 局開始状態
         if self.state == GameBase.KYOKU_START_STATE:
             self.start_kyoku()
@@ -29,6 +27,7 @@ class GameRoutine:
             self.players[self.teban].tsumo(tsumo)
 
             # 選択を格納
+            self.tsumoho_decisions = dict()
             self.ankan_decisions = dict()
             self.richi_decisions = dict()
 
@@ -42,6 +41,7 @@ class GameRoutine:
             # AIの選択を格納
             player = self.players[self.teban]
             if player.type == 'kago':
+                self.tsumoho_decisions[player.position] = False
                 self.richi_decisions[player.position] = player.decide_richi()
                 self.ankan_decisions[player.position] = player.decide_ankan()
 
@@ -51,10 +51,24 @@ class GameRoutine:
 
         # 通知1受信状態
         elif self.state == GameBase.NOTICE1_STATE:
-            if len(self.richi_decisions) != 1 or len(self.ankan_decisions) != 1:
+            print('TSUMOHO', self.tsumoho_decisions)
+            print('RICHI', self.richi_decisions)
+            print('ankan', self.ankan_decisions)
+            if len(self.tsumoho_decisions) != 1 or len(self.richi_decisions) != 1 or len(self.ankan_decisions) != 1:
                 return False
 
             self.dahai_decisions = dict()
+
+            # ツモの決定
+            who, tf = list(self.tsumoho_decisions.items())[0]
+            if tf:
+                tsumoho = self.players[who].tsumoho()
+                for player in self.players:
+                    player.tsumoho_message(tsumoho)
+
+                self.prev_state = GameBase.NOTICE1_STATE
+                self.state = GameBase.AGARI_STATE
+                return True
 
             # 暗槓の決定
             who, pais = list(self.ankan_decisions.items())[0]
@@ -68,8 +82,8 @@ class GameRoutine:
                 return True
 
             # リーチの決定
-            who, richi = list(self.richi_decisions.items())[0]
-            if richi:
+            who, tf = list(self.richi_decisions.items())[0]
+            if tf:
                 self.players[who].richi_declare()
                 for player in self.players:
                     player.richi_declare_notice_message()
