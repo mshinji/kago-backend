@@ -11,6 +11,13 @@ class GameRoutine:
 
         # 局開始状態
         if self.state == GameBase.KYOKU_START_STATE:
+            if self.kyoku >= 8 or any(bool(self.scores[i] < 0) for i in range(4)):
+                for player in self.players:
+                    player.syukyoku_message()
+                self.prev_state = GameBase.KYOKU_START_STATE
+                self.state = GameBase.SYUKYOKU_STATE
+                return True
+
             self.start_kyoku()
             for player in self.players:
                 player.start_kyoku_message()
@@ -204,5 +211,5 @@ class GameRoutine:
             pass
 
         # 終局状態
-        elif self.state == GameBase.END_STATE:
+        elif self.state == GameBase.SYUKYOKU_STATE:
             pass

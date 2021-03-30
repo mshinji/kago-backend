@@ -12,7 +12,7 @@ class GameBase:
     NOTICE2_STATE = 30
     AGARI_STATE = 40
     RYUKYOKU_STATE = 50
-    END_STATE = 60
+    SYUKYOKU_STATE = 60
 
     def __init__(self):
         self.mode = GameBase.NORMAL_MODE

@@ -167,8 +167,21 @@ class PlayerMessage:
             }
         })
 
-    # 通知1(ツモ和/リーチ/暗槓/加槓)
+    # TODO トップの人にリーチ棒を
+    def syukyoku_message(self):
+        scores = [self.game.scores[i] for i in range(4)]
+        order_scores = sorted(scores, reverse=True)
+        ranks = [order_scores.index(scores[i]) + 1 for i in range(4)]
 
+        self.actions.append({
+            'type': 'syukyoku_message',
+            'body': {
+                'scores': [scores[i % 4] for i in range(self.position, self.position + 4)],
+                'ranks':  [ranks[i % 4] for i in range(self.position, self.position + 4)]
+            }
+        })
+
+    # 通知1(ツモ和/リーチ/暗槓/加槓)
     def tsumoho_notice_message(self):
         if self.can_tsumoho():
             self.actions.append({'type': 'tsumoho_notice_message'})
