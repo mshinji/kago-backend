@@ -25,6 +25,7 @@ class GameRoutine:
                     player.ryukyoku_message()
                 self.prev_state = GameBase.TSUMO_STATE
                 self.state = GameBase.RYUKYOKU_STATE
+                return True
 
             # ツモ
             if self.prev_state != GameBase.NOTICE1_STATE:

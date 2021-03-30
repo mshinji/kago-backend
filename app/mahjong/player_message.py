@@ -1,4 +1,5 @@
 from itertools import combinations
+from .shanten import calc_shanten
 
 
 class PlayerMessage:
@@ -120,7 +121,54 @@ class PlayerMessage:
             }
         })
 
+    # TODO テンパイではリーチ棒情報が出ない
+    # TODO 時間がないのでとりあえず動作も同時に
+    def ryukyoku_message(self):
+        is_tenpais = []
+        for player in self.game.players:
+            tehai = [0] * 136
+            for i in player.tehai:
+                tehai[i] += 1
+            is_tenpais.append(bool(calc_shanten(tehai, len(player.huro)) <= 0))
+
+        n_tenpai = is_tenpais.count(True)
+        scores = []
+        score_movements = []
+        for i, player in enumerate(self.game.players):
+            if is_tenpais[i] and n_tenpai == 1:
+                score_movements.append(3000)
+            if is_tenpais[i] and n_tenpai == 2:
+                score_movements.append(1500)
+            if is_tenpais[i] and n_tenpai == 3:
+                score_movements.append(1000)
+            if not is_tenpais[i] and n_tenpai == 1:
+                score_movements.append(-1000)
+            if not is_tenpais[i] and n_tenpai == 2:
+                score_movements.append(-1500)
+            if not is_tenpais[i] and n_tenpai == 3:
+                score_movements.append(-3000)
+            if n_tenpai == 0 or n_tenpai == 4:
+                score_movements.append(0)
+
+            self.game.scores[i] += score_movements[i]
+            scores.append(self.game.scores[i])
+
+        # 四回実行されちゃうので
+        if self.position == 0:
+            self.game.honba += 1
+            if not is_tenpais[self.game.kyoku % 4]:
+                self.game.kyoku += 1
+
+        self.actions.append({
+            'type': 'ryukyoku_message',
+            'body': {
+                'scores': [scores[i % 4] for i in range(self.position, self.position + 4)],
+                'scoreMovements':  [score_movements[i % 4] for i in range(self.position, self.position + 4)]
+            }
+        })
+
     # 通知1(ツモ和/リーチ/暗槓/加槓)
+
     def tsumoho_notice_message(self):
         if self.can_tsumoho():
             self.actions.append({'type': 'tsumoho_notice_message'})

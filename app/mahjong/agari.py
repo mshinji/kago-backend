@@ -63,6 +63,7 @@ class Agari:
         # 状況役と全部役を定義
         self.jokyo_yaku = self.get_jokyo_yaku()
         self.zenbu_yaku = self.get_zenbu_yaku()
+        self.bubun_yaku = [0] * 55
 
         # 一般手の和了形を全て抜き出す
         for i in range(34):
@@ -98,7 +99,8 @@ class Agari:
 
                     han = sum(self.jokyo_yaku) + sum(self.zenbu_yaku) + sum(bubun_yaku)
                     if han == sum([self.jokyo_yaku[Agari.YAKU.index(yaku)] for yaku in ['ドラ', '裏ドラ', '赤ドラ']]):
-                        han == 0
+                        hu = -float('inf')
+                        han = -float('inf')
 
                     # ツモ符計算
                     # 喰い平和形

@@ -59,6 +59,7 @@ class Kago(Player):
         return x
 
     def decide_tsumoho(self):
+        return False
         if self.can_tsumoho():
             return True
         else:
@@ -92,6 +93,7 @@ class Kago(Player):
         return mk
 
     def decide_ronho(self):
+        return False
         if self.can_ronho():
             return True
         else:
