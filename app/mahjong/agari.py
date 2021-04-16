@@ -137,6 +137,8 @@ class Agari:
             self.zenbu_yaku = [self.zenbu_yaku[i] if 37 <= i <= 51 else 0 for i in range(0, 55)]
             self.bubun_yaku = [self.bubun_yaku[i] if 37 <= i <= 51 else 0 for i in range(0, 55)]
             han = sum(self.jokyo_yaku + self.zenbu_yaku + self.bubun_yaku)
+        else :
+            self.score_movements = [0, 0, 0, 0]
 
         # 点数変動計算
         score_movements = [0, 0, 0, 0]
