@@ -29,35 +29,36 @@ class Kago(Player):
         # 手牌
         tehai = [0] * 34
         for pai in self.tehai:
-            tehai[pai//4] += 1
+            tehai[pai // 4] += 1
 
         # 赤
         aka = [0] * 34
         for pai in self.tehai:
-            aka[pai//4] = 4
+            if pai in [16, 52, 88]:
+                aka[pai // 4] = 4
 
         # 河
         kawa = [[0] * 34 for _ in range(4)]
         for i, (_, player) in enumerate(self.prange()):
             for pai in player.kawa:
-                kawa[i][pai//4] += 1
+                kawa[i][pai // 4] += 1
 
         # 副露
         huro = [[0] * 34 for _ in range(4)]
         for i, (_, player) in enumerate(self.prange()):
             for h in player.huro:
                 for pai in h['pais']:
-                    huro[i][pai//4] += 1
+                    huro[i][pai // 4] += 1
         # ドラ
         dora = [0] * 34
         for pai in self.game.dora:
-            dora[pai//4] += 1
+            dora[pai // 4] += 1
 
         # リーチ
         richi = [[0] * 34 for _ in range(3)]
         for i, (_, player) in enumerate(self.prange()[1:]):
             if player.richi_pai is not None:
-                richi[i][player.richi_pai//4] = 4
+                richi[i][player.richi_pai // 4] = 4
 
         # 場風
         bakaze = [0] * 34

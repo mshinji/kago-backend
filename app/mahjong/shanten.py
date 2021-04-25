@@ -26,7 +26,7 @@ def calc_shanten(tehai136, n_huro):
     tehai = [0] * 34
     for i in range(136):
         if tehai136[i]:
-            tehai[i//4] += 1
+            tehai[i // 4] += 1
 
     # 雀頭がないときの向聴数
     min_shanten = get_temporary_shanten(tehai, n_huro)

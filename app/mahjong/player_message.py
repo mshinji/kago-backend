@@ -163,7 +163,7 @@ class PlayerMessage:
             'type': 'ryukyoku_message',
             'body': {
                 'scores': [scores[i % 4] for i in range(self.position, self.position + 4)],
-                'scoreMovements':  [score_movements[i % 4] for i in range(self.position, self.position + 4)]
+                'scoreMovements': [score_movements[i % 4] for i in range(self.position, self.position + 4)]
             }
         })
 
@@ -177,7 +177,7 @@ class PlayerMessage:
             'type': 'syukyoku_message',
             'body': {
                 'scores': [scores[i % 4] for i in range(self.position, self.position + 4)],
-                'ranks':  [ranks[i % 4] for i in range(self.position, self.position + 4)]
+                'ranks': [ranks[i % 4] for i in range(self.position, self.position + 4)]
             }
         })
 
@@ -249,7 +249,7 @@ class PlayerMessage:
                 continue
 
             if i in aka or j in aka or self.game.last_dahai in aka:
-                if done[i//4][1] == 0:
+                if done[i // 4][1] == 0:
                     pais = [self.game.last_dahai, i, j]
                     if self.can_pon(pais, self.game.last_dahai):
                         action['body'].append({
@@ -258,9 +258,9 @@ class PlayerMessage:
                             'dummies': self.game.make_dummies(pais),
                             'fromWho': (self.game.last_teban - self.position) % 4
                         })
-                        done[i//4][1] = 1
+                        done[i // 4][1] = 1
             else:
-                if done[i//4][0] == 0:
+                if done[i // 4][0] == 0:
                     pais = [self.game.last_dahai, i, j]
                     if self.can_pon(pais, self.game.last_dahai):
                         action['body'].append({
@@ -269,7 +269,7 @@ class PlayerMessage:
                             'dummies': self.game.make_dummies(pais),
                             'fromWho': (self.game.last_teban - self.position) % 4
                         })
-                        done[i//4][0] = 1
+                        done[i // 4][0] = 1
 
         if len(action['body']) == 0:
             self.game.pon_decisions[self.position] = [None, None]

@@ -16,10 +16,10 @@ class PlayerAction:
         for i in range(5):
             if i < self.game.n_dora:
                 doras.append(self.game.dora[i])
-                uradoras.append(self.game.dora[i+5])
+                uradoras.append(self.game.dora[i + 5])
             else:
                 doras.append(self.game.make_dummy(self.game.dora[i]))
-                uradoras.append(self.game.make_dummy(self.game.dora[i+5]))
+                uradoras.append(self.game.make_dummy(self.game.dora[i + 5]))
 
         score_movements = agari.score_movements
         for i, score_movement in enumerate(score_movements):
@@ -85,10 +85,10 @@ class PlayerAction:
         for i in range(5):
             if i < self.game.n_dora:
                 doras.append(self.game.dora[i])
-                uradoras.append(self.game.dora[i+5])
+                uradoras.append(self.game.dora[i + 5])
             else:
                 doras.append(self.game.make_dummy(self.game.dora[i]))
-                uradoras.append(self.game.make_dummy(self.game.dora[i+5]))
+                uradoras.append(self.game.make_dummy(self.game.dora[i + 5]))
 
         score_movements = agari.score_movements
         for i, score_movement in enumerate(score_movements):

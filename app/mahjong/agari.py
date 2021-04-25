@@ -48,12 +48,12 @@ class Agari:
 
         self.zenpai = self.tehai[::]
         for i in range(0, len(self.huro), 3):
-            if self.huro[i+2] <= -2:
+            if self.huro[i + 2] <= -2:
                 self.zenpai[self.huro[i]] += 3
             else:
                 self.zenpai[self.huro[i]] += 1
-                self.zenpai[self.huro[i]+1] += 1
-                self.zenpai[self.huro[i]+2] += 1
+                self.zenpai[self.huro[i] + 1] += 1
+                self.zenpai[self.huro[i] + 2] += 1
 
         self.agaris = []
 
@@ -84,11 +84,11 @@ class Agari:
             for i in range(len(self.huro), 13):
                 if self.machi == agari[i]:
                     # 双ポンロンの場合明刻に変換
-                    if not self.tsumo and i in range(0, 3*4, 3) and agari[i+2] == -4:
-                        agari[i+2] = -2
+                    if not self.tsumo and i in range(0, 3 * 4, 3) and agari[i + 2] == -4:
+                        agari[i + 2] = -2
                         hu = self.get_hu(agari, i)
                         bubun_yaku = self.get_bubun_yaku(agari)
-                        agari[i+2] = -4
+                        agari[i + 2] = -4
                     else:
                         hu = self.get_hu(agari, i)
                         bubun_yaku = self.get_bubun_yaku(agari)
@@ -218,12 +218,12 @@ class Agari:
             # 順子抜き出し
             if i <= 26 and i % 9 <= 6 and self.tehai[i + 1] and self.tehai[i + 2]:
                 self.tehai[i] -= 1
-                self.tehai[i+1] -= 1
-                self.tehai[i+2] -= 1
+                self.tehai[i + 1] -= 1
+                self.tehai[i + 2] -= 1
                 self.get_mentsu(tehai + [i, i + 1, i + 2], janto, i)
                 self.tehai[i] += 1
-                self.tehai[i+1] += 1
-                self.tehai[i+2] += 1
+                self.tehai[i + 1] += 1
+                self.tehai[i + 2] += 1
 
             # 刻子抜き出し
             if self.tehai[i] >= 3:
@@ -237,11 +237,11 @@ class Agari:
         hu = 20
 
         # 面子による符
-        for j in range(0, 3*4, 3):
+        for j in range(0, 3 * 4, 3):
             tmp_hu = 0
 
-            if agari[j+2] <= -2:
-                tmp_hu = agari[j+2] * -1
+            if agari[j + 2] <= -2:
+                tmp_hu = agari[j + 2] * -1
 
             if agari[j] in Agari.YAOCHU1:
                 tmp_hu *= 2
@@ -264,13 +264,13 @@ class Agari:
         if i == 12:
             hu += 2
         # 嵌張待ち
-        elif i % 3 == 1 and agari[i+1] > 0:
+        elif i % 3 == 1 and agari[i + 1] > 0:
             hu += 2
         # 辺張待ち(123)
-        elif i % 3 == 2 and agari[i-2] % 9 == 0 and agari[i] > 0:
+        elif i % 3 == 2 and agari[i - 2] % 9 == 0 and agari[i] > 0:
             hu += 2
         # 辺張待ち(789)
-        elif i % 3 == 0 and agari[i] % 9 == 6 and agari[i+2] > 0:
+        elif i % 3 == 0 and agari[i] % 9 == 6 and agari[i + 2] > 0:
             hu += 2
 
         return hu
@@ -311,7 +311,7 @@ class Agari:
         # 45:九蓮宝燈
         if self.huro == []:
             for i in [0, 9, 18]:
-                if self.zenpai[i] >= 3 and self.zenpai[i+8] >= 3 and 0 not in self.zenpai[i+1:i+8]:
+                if self.zenpai[i] >= 3 and self.zenpai[i + 8] >= 3 and 0 not in self.zenpai[i + 1:i + 8]:
                     zenbu_yaku[45] = 13
 
         # 49:大四喜
@@ -329,9 +329,9 @@ class Agari:
 
         # 34:混一色, 35:清一色
         for i in [0, 9, 18]:
-            if sum(self.zenpai[i:i+9]) == 14:
+            if sum(self.zenpai[i:i + 9]) == 14:
                 zenbu_yaku[35] = 5 + self.menzen
-            elif sum(self.zenpai[i:i+9] + self.zenpai[27:34]) == 14:
+            elif sum(self.zenpai[i:i + 9] + self.zenpai[27:34]) == 14:
                 zenbu_yaku[34] = 2 + self.menzen
 
         # 10-13:自風, 14-17:場風, 18-20:役牌
@@ -381,10 +381,10 @@ class Agari:
 
         # 23:混全帯幺九, 33:純全帯幺九
         if self.zenbu_yaku[31] != 2:
-            for i in range(0, 3*4, 3):
-                if agari[i+2] <= -2 and agari[i] in Agari.YAOCHU1:
+            for i in range(0, 3 * 4, 3):
+                if agari[i + 2] <= -2 and agari[i] in Agari.YAOCHU1:
                     continue
-                if agari[i+2] >= -1 and agari[i] in Agari.YAOCHU2:
+                if agari[i + 2] >= -1 and agari[i] in Agari.YAOCHU2:
                     continue
                 break
             else:
@@ -397,7 +397,7 @@ class Agari:
         # 24:一気通貫
         for i in [0, 9, 18]:
             for j in [0, 3, 6]:
-                for k in range(0, 3*4, 3):
+                for k in range(0, 3 * 4, 3):
                     if agari[k + 2] >= -1 and agari[k] == i + j:
                         break
                 else:
@@ -407,13 +407,13 @@ class Agari:
                 break
 
         # 25:三色同順
-        for i in combinations([agari[i] for i in range(0, 3*4, 3) if agari[i+2] >= -1], 3):
+        for i in combinations([agari[i] for i in range(0, 3 * 4, 3) if agari[i + 2] >= -1], 3):
             if i[0] % 9 == i[1] % 9 == i[2] % 9 and i[0] != i[1] and i[0] != i[2] and i[1] != i[2]:
                 bubun_yaku[25] = 1 + self.menzen
                 break
 
         # 26:三色同刻
-        for i in combinations([agari[i] for i in range(0, 3*4, 3) if agari[i+2] <= -2 and agari[i] <= 26], 3):
+        for i in combinations([agari[i] for i in range(0, 3 * 4, 3) if agari[i + 2] <= -2 and agari[i] <= 26], 3):
             if i[0] % 9 == i[1] % 9 == i[2] % 9 and i[0] != i[1] and i[0] != i[2] and i[1] != i[2]:
                 bubun_yaku[25] = 2
                 break
@@ -423,11 +423,11 @@ class Agari:
             bubun_yaku[27] = 2
 
         # 28:対々和
-        if sum([1 for i in range(2, 3*4, 3) if agari[i] <= -2]) == 4:
+        if sum([1 for i in range(2, 3 * 4, 3) if agari[i] <= -2]) == 4:
             bubun_yaku[28] = 2
 
         # 29:三暗刻
-        if sum([1 for i in range(2, 3*4, 3) if agari[i] == -4 or agari[i] == -16]) == 3:
+        if sum([1 for i in range(2, 3 * 4, 3) if agari[i] == -4 or agari[i] == -16]) == 3:
             bubun_yaku[29] = 2
 
         return bubun_yaku
