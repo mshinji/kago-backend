@@ -2,5 +2,5 @@
 .DS_Store
 *.code-workspace
 *__pycache__/
-venv/
+.venv/
 *.npz
