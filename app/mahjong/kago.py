@@ -30,22 +30,58 @@ class Kago(Player):
         tehai = [0] * 34
         for pai in self.tehai:
             tehai[pai//4] += 1
+
+        # 赤
+        aka = [0] * 34
+        for pai in self.tehai:
+            aka[pai//4] = 4
+
         # 河
         kawa = [[0] * 34 for _ in range(4)]
         for i, (_, player) in enumerate(self.prange()):
             for pai in player.kawa:
                 kawa[i][pai//4] += 1
+
         # 副露
         huro = [[0] * 34 for _ in range(4)]
+        for i, (_, player) in enumerate(self.prange()):
+            for h in player.huro:
+                for pai in h['pais']:
+                    huro[i][pai//4] += 1
+        # ドラ
+        dora = [0] * 34
+        for pai in self.game.dora:
+            dora[pai//4] += 1
+
+        # リーチ
+        richi = [[0] * 34 for _ in range(3)]
+        for i, (_, player) in enumerate(self.prange()[1:]):
+            if player.richi_pai is not None:
+                richi[i][player.richi_pai//4] = 4
+
+        # 場風
+        bakaze = [0] * 34
+        bakaze[27 + self.game.kyoku // 4] = 4
+
+        # 自風
+        zikaze = [0] * 34
+        zikaze[27 + (self.position - self.game.kyoku)] = 4
+
         # 最後の打牌
-        last_dahai = [1 if self.game.last_dahai == i else 0 for i in range(34)]
+        last_dahai = [4 if self.game.last_dahai == i else 0 for i in range(34)]
 
         row = []
         row += tehai
+        row += aka
         for i in range(4):
             row += kawa[i]
         for i in range(4):
             row += huro[i]
+        row += dora
+        for i in range(3):
+            row += richi[i]
+        row += bakaze
+        row += zikaze
         row += last_dahai
 
         x = []
