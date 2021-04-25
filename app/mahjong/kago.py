@@ -66,7 +66,7 @@ class Kago(Player):
 
         # 自風
         zikaze = [0] * 34
-        zikaze[27 + (self.position - self.game.kyoku)] = 4
+        zikaze[27 + (self.position - self.game.kyoku) % 4] = 4
 
         # 最後の打牌
         last_dahai = [0] * 34
