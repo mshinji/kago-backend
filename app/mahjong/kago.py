@@ -97,6 +97,49 @@ class Kago(Player):
         x = np.array([x], np.float32)
         return x
 
+    def debug(self, x):
+        jp = ['1m', '2m', '3m', '4m', '5m', '6m', '7m', '8m', '9m',
+              '1p', '2p', '3p', '4p', '5p', '6p', '7p', '8p', '9p',
+              '1s', '2s', '3s', '4s', '5s', '6s', '7s', '8s', '9s',
+              '東', '南', '西', '北', '白', '発', '中', '-']
+
+        data = x[0]
+        for i, plate in enumerate(data):
+            if i == 0:
+                print('====================')
+                print('手牌')
+            if i == 1:
+                print('====================')
+                print('赤牌')
+            if i == 2:
+                print('====================')
+                print('河')
+            if i == 6:
+                print('====================')
+                print('副露')
+            if i == 10:
+                print('====================')
+                print('ドラ')
+            if i == 11:
+                print('====================')
+                print('リーチ')
+            if i == 14:
+                print('====================')
+                print('場風')
+            if i == 15:
+                print('====================')
+                print('自風')
+            if i == 16:
+                print('====================')
+                print('最後の打牌')
+
+            detail = ''
+            for j, row in enumerate(plate):
+                for p in row:
+                    if p == 1:
+                        detail += jp[j]
+            print(detail)
+
     def decide_tsumoho(self):
         if self.can_tsumoho():
             return True
