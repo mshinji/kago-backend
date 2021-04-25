@@ -137,7 +137,7 @@ class Agari:
             self.zenbu_yaku = [self.zenbu_yaku[i] if 37 <= i <= 51 else 0 for i in range(0, 55)]
             self.bubun_yaku = [self.bubun_yaku[i] if 37 <= i <= 51 else 0 for i in range(0, 55)]
             han = sum(self.jokyo_yaku + self.zenbu_yaku + self.bubun_yaku)
-        else :
+        else:
             self.score_movements = [0, 0, 0, 0]
 
         # 点数変動計算
@@ -475,6 +475,6 @@ class Agari:
             jokyo_yaku[Agari.YAKU.index('裏ドラ')] += zenpai[self.get_dora(self.game.dora[i + 5])]
         # 赤ドラ
         for pai in [16, 52, 88]:
-            jokyo_yaku[Agari.YAKU.index('赤ドラ')] += self.tehai.count(pai)
+            jokyo_yaku[Agari.YAKU.index('赤ドラ')] += self.player.tehai.count(pai)
 
         return jokyo_yaku
