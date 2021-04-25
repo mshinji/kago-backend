@@ -51,7 +51,7 @@ class Kago(Player):
                     huro[i][pai // 4] += 1
         # ドラ
         dora = [0] * 34
-        for pai in self.game.dora:
+        for pai in self.game.dora[:self.game.n_dora]:
             dora[pai // 4] += 1
 
         # リーチ
@@ -69,7 +69,9 @@ class Kago(Player):
         zikaze[27 + (self.position - self.game.kyoku)] = 4
 
         # 最後の打牌
-        last_dahai = [4 if self.game.last_dahai == i else 0 for i in range(34)]
+        last_dahai = [0] * 34
+        if self.game.last_dahai is not None:
+            last_dahai[self.game.last_dahai // 4] = 4
 
         row = []
         row += tehai
