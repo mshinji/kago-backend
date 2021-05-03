@@ -1,5 +1,4 @@
 from itertools import combinations
-from .shanten import calc_shanten
 
 
 class PlayerMessage:
@@ -126,10 +125,7 @@ class PlayerMessage:
     def ryukyoku_message(self):
         is_tenpais = []
         for player in self.game.players:
-            tehai = [0] * 136
-            for i in player.tehai:
-                tehai[i] += 1
-            is_tenpais.append(bool(calc_shanten(tehai, len(player.huro)) <= 0))
+            is_tenpais.append(bool(player.calc_shanten() <= 0))
 
         n_tenpai = is_tenpais.count(True)
         scores = []

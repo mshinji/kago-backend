@@ -21,13 +21,7 @@ def get_shanten_from_table(tehai):
     return shanten_table.get(tehai_decimal, [[0, 0]])
 
 
-def calc_shanten(tehai136, n_huro):
-    # tehai変換
-    tehai = [0] * 34
-    for i in range(136):
-        if tehai136[i]:
-            tehai[i // 4] += 1
-
+def calc_shanten(tehai, n_huro):
     # 雀頭がないときの向聴数
     min_shanten = get_temporary_shanten(tehai, n_huro)
 

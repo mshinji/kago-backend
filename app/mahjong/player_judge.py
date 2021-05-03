@@ -1,6 +1,5 @@
 from .agari import Agari
 from .game_base import GameBase
-from .shanten import calc_shanten
 
 
 class PlayerJudge:
@@ -8,11 +7,7 @@ class PlayerJudge:
         if self.game.teban != self.position:
             # print('手番じゃない')
             return False
-        # TODO calc_chantenの方をこっちに合わせる
-        tehai = [0] * 136
-        for i in self.tehai:
-            tehai[i] += 1
-        if calc_shanten(tehai, len(self.huro)) >= 0:
+        if self.calc_shanten() >= 0:
             # print('和了ってない')
             return False
         # TODO パオ
@@ -21,14 +16,6 @@ class PlayerJudge:
             return False
 
         return True
-
-    # TODO shanten.pyに組み込む
-    def is_tenpai(self, dahai):
-        tehai = [0] * 136
-        for i in self.tehai:
-            if i != dahai:
-                tehai[i] += 1
-        return bool(calc_shanten(tehai, len(self.huro)) <= 0)
 
     def can_dahai(self, dahai):
         if self.game.teban != self.position:
@@ -43,9 +30,8 @@ class PlayerJudge:
         if self.is_richi_complete and dahai != self.game.last_tsumo:
             # print('リーチ後にツモ切りしてない')
             return False
-        richi = self.is_richi_declare and not self.is_richi_complete
-        if richi and not self.is_tenpai(dahai):
-            # print('聴牌しないリーチ宣言牌')
+        if self.is_richi_declare and not self.is_richi_complete and self.calc_shanten(remove=[dahai]) > 0:
+            print('聴牌しないリーチ宣言牌')
             return False
 
         return True
@@ -67,7 +53,7 @@ class PlayerJudge:
         if self.game.scores[self.position] < 1000:
             # print('1000点ない')
             return False
-        if not self.is_tenpai(dahai):
+        if self.calc_shanten(remove=[dahai]) > 0:
             # print('テンパってない')
             return False
 
@@ -99,17 +85,16 @@ class PlayerJudge:
             if i not in self.tehai:
                 # print('手牌に含まれていない牌がある')
                 return False
+        if self.richi_complete:
+            pass
+
         return True
 
     def can_ronho(self):
         if self.game.teban == self.position:
             # print('捨てた本人')
             return False
-        # TODO calc_chantenの方をこっちに合わせる
-        tehai = [0] * 136
-        for i in self.tehai + [self.game.last_dahai]:
-            tehai[i] += 1
-        if calc_shanten(tehai, len(self.huro)) >= 0:
+        if self.calc_shanten() >= 0:
             # print('和了ってない')
             return False
         # TODO パオ
