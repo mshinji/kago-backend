@@ -66,12 +66,20 @@ class GameAction:
         # ]
         # 国士無双13面
         # original = [0 * 4, 8 * 4, 9 * 4, 17 * 4, 18 * 4, 26 * 4] + [i for i in range(4 * 27, 4 * 34, 4)]
+        # 四暗刻
+        # original = [
+        #     35, 0, 1, 2, 3,
+        #     20, 21, 22, 36, 37, 38, 52, 53, 54, 68, 110, 70, 88,
+        #     24, 25, 26, 40, 41, 42, 107, 57, 58, 72, 73, 74, 89,
+        #     28, 101, 30, 44, 45, 46, 60, 61, 62, 76, 77, 78, 90,
+        #     32, 33, 34, 48, 49, 50, 64, 65, 66, 80, 81, 82, 91
+        # ]
 
         # self.yama = [i for i in range(136)]
         # shuffle(self.yama)
         # for i in original:
         #     self.yama.pop(self.yama.index(i))
-        # self.yama = self.yama[:len(self.yama)-14] + original + self.yama[len(self.yama)-14:]
+        # self.yama = self.yama[:len(self.yama) - 14] + original + self.yama[len(self.yama) - 14:]
 
         # ドラ生成
         self.dora = []
