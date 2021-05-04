@@ -4,7 +4,6 @@ from .game_routine import GameRoutine
 
 # TODO リーチ後のカンできるかどうか
 # TODO 喰い替え禁止
-# TODO 東東東南南南西西西西北北北北みたいな配牌でリーチできてしまう問題
 
 
 class Game(GameBase, GameAction, GameRoutine):
