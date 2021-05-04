@@ -31,7 +31,7 @@ class PlayerJudge:
             # print('リーチ後にツモ切りしてない')
             return False
         if self.is_richi_declare and not self.is_richi_complete and self.calc_shanten(remove=[dahai]) > 0:
-            print('聴牌しないリーチ宣言牌')
+            # print('聴牌しないリーチ宣言牌')
             return False
 
         return True

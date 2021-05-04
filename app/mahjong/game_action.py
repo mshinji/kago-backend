@@ -38,7 +38,7 @@ class GameAction:
         # カン
         # original = [
         #     108 + 13, 108 + 14, 108 + 15, 108 + 16, 108 + 17,
-        #     * list(range(0, 0 + 13)),
+        #     *list(range(0, 0 + 13)),
         #     *list(range(36, 36 + 13)),
         #     *list(range(72, 72 + 13)),
         #     *list(range(108, 108 + 13))
