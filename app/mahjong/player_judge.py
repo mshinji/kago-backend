@@ -85,8 +85,14 @@ class PlayerJudge:
             if i not in self.tehai:
                 # print('手牌に含まれていない牌がある')
                 return False
-        if self.richi_complete:
-            pass
+        if self.is_richi_complete:
+            shanten1 = self.calc_shanten(remove=[self.game.last_tsumo])
+            shanten2 = self.calc_shanten(remove=ankan)
+            machi1 = self.get_yuko(remove=[self.game.last_tsumo])
+            machi2 = self.get_yuko(remove=ankan)
+            if shanten1 != shanten2 or machi1 != machi2:
+                print('リーチ後に待ちの変わる暗槓')
+                return False
 
         return True
 
