@@ -472,7 +472,8 @@ class Agari:
         # ドラ/裏ドラ
         for i in range(self.game.n_dora):
             jokyo_yaku[Agari.YAKU.index('ドラ')] += zenpai[self.get_dora(self.game.dora[i])]
-            jokyo_yaku[Agari.YAKU.index('裏ドラ')] += zenpai[self.get_dora(self.game.dora[i + 5])]
+            if self.player.is_richi_complete:
+                jokyo_yaku[Agari.YAKU.index('裏ドラ')] += zenpai[self.get_dora(self.game.dora[i + 5])]
         # 赤ドラ
         for pai in [16, 52, 88]:
             jokyo_yaku[Agari.YAKU.index('赤ドラ')] += self.player.tehai.count(pai)

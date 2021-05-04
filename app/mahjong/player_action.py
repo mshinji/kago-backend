@@ -85,7 +85,11 @@ class PlayerAction:
         for i in range(5):
             if i < self.game.n_dora:
                 doras.append(self.game.dora[i])
-                uradoras.append(self.game.dora[i + 5])
+                if self.is_richi_complete:
+                    uradoras.append(self.game.dora[i + 5])
+                else:
+                    uradoras.append(self.game.make_dummy(self.game.dora[i + 5]))
+
             else:
                 doras.append(self.game.make_dummy(self.game.dora[i]))
                 uradoras.append(self.game.make_dummy(self.game.dora[i + 5]))
