@@ -14,7 +14,7 @@ class Agari:
             '小三元', '混老頭', '二盃口', '純全帯幺九', '混一色',
             '清一色', '', '天和', '地和', '大三元',
             '四暗刻', '四暗刻単騎', '字一色', '緑一色', '清老頭',
-            '九蓮宝燈', '純正九蓮宝燈', '国士無双', '国士無双１３面', '大四喜',
+            '九蓮宝燈', '純正九蓮宝燈', '国士無双', '国士無双13面', '大四喜',
             '小四喜', '四槓子', 'ドラ', '裏ドラ', '赤ドラ']
 
     def __init__(self, player, game):
@@ -76,7 +76,7 @@ class Agari:
 
         self.yaku = [0] * 55
         for i in range(55):
-            self.yaku[i] += self.zenbu_yaku[i] + self.bubun_yaku[i] + self.jokyo_yaku[i]
+            self.yaku[i] = self.zenbu_yaku[i] + self.bubun_yaku[i] + self.jokyo_yaku[i]
 
     def get_ten(self):
         max = [0, 0]

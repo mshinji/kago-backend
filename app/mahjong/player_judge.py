@@ -70,7 +70,7 @@ class PlayerJudge:
             # print('カンの個数が4以上')
             return False
         if len(self.game.yama) <= 0:
-            # print('山に牌が1つ以上')
+            # print('山に牌がない')
             return False
         if len(ankan) != 4:
             # print('牌の数が4つじゃない')
