@@ -1,4 +1,4 @@
-from .shanten import calc_shanten
+from .shanten import calc_shanten, get_yuko
 
 
 class PlayerBase:
@@ -20,3 +20,14 @@ class PlayerBase:
             tehai[p // 4] -= 1
 
         return calc_shanten(tehai, len(self.huro))
+
+    def get_yuko(self, add=[], remove=[]):
+        tehai = [0] * 34
+        for p in self.tehai:
+            tehai[p // 4] += 1
+        for p in add:
+            tehai[p // 4] += 1
+        for p in remove:
+            tehai[p // 4] -= 1
+
+        return get_yuko(tehai, [4] * 34, len(self.huro))
