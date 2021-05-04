@@ -14,10 +14,12 @@ module_dir = os.path.dirname(__file__)
 class Kago(Player):
     DAHAI_NETWORK = L.Classifier(CNN(n_output=34))
     RICHI_NETWORK = L.Classifier(CNN(n_output=2))
+    ANKAN_NETWORK = L.Classifier(CNN(n_output=2))
     PON_NETWORK = L.Classifier(CNN(n_output=2))
     CHI_NETWORK = L.Classifier(CNN(n_output=4))
     serializers.load_npz(os.path.join(module_dir, 'networks/dahai.npz'), DAHAI_NETWORK)
     serializers.load_npz(os.path.join(module_dir, 'networks/richi.npz'), RICHI_NETWORK)
+    serializers.load_npz(os.path.join(module_dir, 'networks/ankan.npz'), ANKAN_NETWORK)
     serializers.load_npz(os.path.join(module_dir, 'networks/pon.npz'), PON_NETWORK)
     serializers.load_npz(os.path.join(module_dir, 'networks/chi.npz'), CHI_NETWORK)
 
@@ -147,7 +149,21 @@ class Kago(Player):
             return False
 
     def decide_ankan(self):
-        return None
+        x = self.make_input()
+        y = Kago.ANKAN_NETWORK.predictor(x)[0].array
+        mk, mv = None, -float('inf')
+
+        for i in range(2):
+            if y[i] > mv:
+                if i == 0:
+                    mk, mv = None, y[i]
+                if i == 1:
+                    for p in range(34):
+                        if self.can_ankan([p * 4, p * 4 + 1, p * 4 + 2, p * 4 + 3]):
+                            mk, mv = [p * 4, p * 4 + 1, p * 4 + 2, p * 4 + 3], y[i]
+                            break
+
+        return mk
 
     def decide_richi(self):
         if not any([self.can_richi_declare(dahai) for dahai in self.tehai]):
