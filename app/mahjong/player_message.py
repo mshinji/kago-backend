@@ -110,7 +110,8 @@ class PlayerMessage:
             }
         })
 
-    def open_dora_message(self, pai):
+    def open_dora_message(self):
+        pai = self.game.dora[self.game.n_dora - 1]
         self.actions.append({
             'type': 'open_dora_message',
             'body': {

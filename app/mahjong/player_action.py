@@ -51,6 +51,7 @@ class PlayerAction:
             self.tehai.pop(self.tehai.index(i))
         self.huro.append({'type': 'ankan', 'pais': pais})
         self.game.n_kan += 1
+        self.game.n_dora += 1
         self.game.pc += 10
 
     def richi_declare(self):

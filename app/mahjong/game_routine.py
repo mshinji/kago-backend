@@ -87,6 +87,7 @@ class GameRoutine:
                 self.players[who].ankan(pais)
                 for player in self.players:
                     player.ankan_message(pais)
+                    player.open_dora_message()
 
                 self.prev_state = GameBase.NOTICE1_STATE
                 self.state = GameBase.TSUMO_STATE
