@@ -94,7 +94,7 @@ class PlayerJudge:
         if self.game.teban == self.position:
             # print('捨てた本人')
             return False
-        if self.calc_shanten() >= 0:
+        if self.calc_shanten(add=[self.game.last_dahai]) >= 0:
             # print('和了ってない')
             return False
         # TODO パオ
