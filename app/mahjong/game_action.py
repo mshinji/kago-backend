@@ -1,6 +1,6 @@
 from random import shuffle
 
-from .game_base import GameBase
+from .const import Const
 
 
 class GameAction:
@@ -9,8 +9,8 @@ class GameAction:
         for i, player in enumerate(self.players):
             player.position = i
 
-        self.state = GameBase.KYOKU_START_STATE
-        self.prev_state = GameBase.INITIAL_STATE
+        self.state = Const.KYOKU_START_STATE
+        self.prev_state = Const.INITIAL_STATE
 
     def start_kyoku(self):
         # 各プレイヤーの手牌・河・副露の初期化
@@ -116,7 +116,7 @@ class GameAction:
         self.chi_decisions = dict()
 
         # 状態
-        self.prev_state, self.state = self.state, GameBase.KYOKU_START_STATE
+        self.prev_state, self.state = self.state, Const.KYOKU_START_STATE
 
     def tsumoho(self, player):
         if player.can_tsumoho():
@@ -161,7 +161,7 @@ class GameAction:
             self.chi_decisions[player.position] = [pais, pai]
 
     def next_kyoku(self):
-        if self.state == GameBase.AGARI_STATE:
-            self.state = GameBase.KYOKU_START_STATE
-        elif self.state == GameBase.RYUKYOKU_STATE:
-            self.state = GameBase.KYOKU_START_STATE
+        if self.state == Const.AGARI_STATE:
+            self.state = Const.KYOKU_START_STATE
+        elif self.state == Const.RYUKYOKU_STATE:
+            self.state = Const.KYOKU_START_STATE

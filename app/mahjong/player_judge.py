@@ -1,5 +1,5 @@
 from .agari import Agari
-from .game_base import GameBase
+from .const import Const
 
 
 class PlayerJudge:
@@ -21,7 +21,7 @@ class PlayerJudge:
         if self.game.teban != self.position:
             # print('手番じゃない')
             return False
-        if self.game.state not in [GameBase.NOTICE1_STATE, GameBase.DAHAI_STATE]:
+        if self.game.state not in [Const.NOTICE1_STATE, Const.DAHAI_STATE]:
             # print('ステート異常')
             return False
         if dahai not in self.tehai:
@@ -43,7 +43,7 @@ class PlayerJudge:
         if self.is_richi_complete:
             # print('リーチしている')
             return False
-        if self.game.state not in [GameBase.TSUMO_STATE, GameBase.NOTICE1_STATE, GameBase.DAHAI_STATE]:
+        if self.game.state not in [Const.TSUMO_STATE, Const.NOTICE1_STATE, Const.DAHAI_STATE]:
             # print('ステート異常')
             return False
         huro_types = [huro['type'] for huro in self.huro]
@@ -63,7 +63,7 @@ class PlayerJudge:
         if self.game.teban != self.position:
             # print('手番じゃない')
             return False
-        if self.game.state != GameBase.TSUMO_STATE and self.game.state != GameBase.NOTICE1_STATE:
+        if self.game.state != Const.TSUMO_STATE and self.game.state != Const.NOTICE1_STATE:
             # print('ステート以上')
             return False
         if self.game.n_kan >= 4:
@@ -117,7 +117,7 @@ class PlayerJudge:
         if self.is_richi_complete:
             # print('リーチしている')
             return False
-        if self.game.state != GameBase.DAHAI_STATE and self.game.state != GameBase.NOTICE2_STATE:
+        if self.game.state != Const.DAHAI_STATE and self.game.state != Const.NOTICE2_STATE:
             # print('ステート異常')
             return False
         if pai not in pais:
@@ -149,7 +149,7 @@ class PlayerJudge:
         if self.is_richi_complete:
             # print('リーチしている')
             return False
-        if self.game.state != GameBase.DAHAI_STATE and self.game.state != GameBase.NOTICE2_STATE:
+        if self.game.state != Const.DAHAI_STATE and self.game.state != Const.NOTICE2_STATE:
             # print('ステート異常')
             return False
         if pai not in pais:

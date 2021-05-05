@@ -1,4 +1,4 @@
-from .game_base import GameBase
+from .const import Const
 
 # TODO ダブロン検証
 
@@ -10,32 +10,32 @@ class GameRoutine:
             player.reset_actions()
 
         # 局開始状態
-        if self.state == GameBase.KYOKU_START_STATE:
+        if self.state == Const.KYOKU_START_STATE:
             if self.kyoku >= 8 or any(bool(self.scores[i] < 0) for i in range(4)):
                 for player in self.players:
                     player.syukyoku_message()
-                self.prev_state = GameBase.KYOKU_START_STATE
-                self.state = GameBase.SYUKYOKU_STATE
+                self.prev_state = Const.KYOKU_START_STATE
+                self.state = Const.SYUKYOKU_STATE
                 return True
 
             self.start_kyoku()
             for player in self.players:
                 player.start_kyoku_message()
 
-            self.prev_state, self.state = self.state, GameBase.TSUMO_STATE
+            self.prev_state, self.state = self.state, Const.TSUMO_STATE
             return True
 
         # ツモ状態
-        elif self.state == GameBase.TSUMO_STATE:
+        elif self.state == Const.TSUMO_STATE:
             if len(self.yama) == 0:
                 for player in self.players:
                     player.ryukyoku_message()
-                self.prev_state = GameBase.TSUMO_STATE
-                self.state = GameBase.RYUKYOKU_STATE
+                self.prev_state = Const.TSUMO_STATE
+                self.state = Const.RYUKYOKU_STATE
                 return True
 
             # ツモ
-            if self.prev_state != GameBase.NOTICE1_STATE:
+            if self.prev_state != Const.NOTICE1_STATE:
                 self.teban = (self.teban + 1) % 4
             tsumo = self.yama.pop()
             self.players[self.teban].tsumo(tsumo)
@@ -59,12 +59,12 @@ class GameRoutine:
                 self.richi_decisions[player.position] = player.decide_richi()
                 self.ankan_decisions[player.position] = player.decide_ankan()
 
-            self.prev_state = GameBase.TSUMO_STATE
-            self.state = GameBase.NOTICE1_STATE
+            self.prev_state = Const.TSUMO_STATE
+            self.state = Const.NOTICE1_STATE
             return True
 
         # 通知1受信状態
-        elif self.state == GameBase.NOTICE1_STATE:
+        elif self.state == Const.NOTICE1_STATE:
             if len(self.tsumoho_decisions) != 1 or len(self.richi_decisions) != 1 or len(self.ankan_decisions) != 1:
                 return False
 
@@ -77,8 +77,8 @@ class GameRoutine:
                 for player in self.players:
                     player.tsumoho_message(tsumoho)
 
-                self.prev_state = GameBase.NOTICE1_STATE
-                self.state = GameBase.AGARI_STATE
+                self.prev_state = Const.NOTICE1_STATE
+                self.state = Const.AGARI_STATE
                 return True
 
             # 暗槓の決定
@@ -91,8 +91,8 @@ class GameRoutine:
                     player.ankan_message(pais)
                     player.open_dora_message()
 
-                self.prev_state = GameBase.NOTICE1_STATE
-                self.state = GameBase.TSUMO_STATE
+                self.prev_state = Const.NOTICE1_STATE
+                self.state = Const.TSUMO_STATE
                 return True
 
             # リーチの決定
@@ -102,16 +102,16 @@ class GameRoutine:
                 for player in self.players:
                     player.richi_declare_notice_message()
 
-                self.prev_state = GameBase.NOTICE1_STATE
-                self.state = GameBase.DAHAI_STATE
+                self.prev_state = Const.NOTICE1_STATE
+                self.state = Const.DAHAI_STATE
                 return True
 
-            self.prev_state = GameBase.NOTICE1_STATE
-            self.state = GameBase.DAHAI_STATE
+            self.prev_state = Const.NOTICE1_STATE
+            self.state = Const.DAHAI_STATE
             return True
 
         # 打牌受信状態
-        elif self.state == GameBase.DAHAI_STATE:
+        elif self.state == Const.DAHAI_STATE:
             # AIの選択を格納
             player = self.players[self.teban]
             if player.position not in self.dahai_decisions and player.type == 'kago':
@@ -148,12 +148,12 @@ class GameRoutine:
                     self.pon_decisions[player.position] = [player.decide_pon(), self.last_dahai]
                     self.chi_decisions[player.position] = [player.decide_chi(), self.last_dahai]
 
-            self.prev_state = GameBase.DAHAI_STATE
-            self.state = GameBase.NOTICE2_STATE
+            self.prev_state = Const.DAHAI_STATE
+            self.state = Const.NOTICE2_STATE
             return True
 
         # 通知2受信状態
-        elif self.state == GameBase.NOTICE2_STATE:
+        elif self.state == Const.NOTICE2_STATE:
             if len(self.ronho_decisions) != 4 or len(self.pon_decisions) != 4 or len(self.chi_decisions) != 4:
                 return False
 
@@ -165,8 +165,8 @@ class GameRoutine:
                 for player in self.players:
                     player.ronho_message(ronho)
 
-                self.prev_state = GameBase.NOTICE2_STATE
-                self.state = GameBase.AGARI_STATE
+                self.prev_state = Const.NOTICE2_STATE
+                self.state = Const.AGARI_STATE
                 return True
 
             # ロンじゃなければリーチ成立
@@ -185,8 +185,8 @@ class GameRoutine:
                         player.pon_message(pais, pai)
 
                     self.dahai_decisions = dict()
-                    self.prev_state = GameBase.NOTICE2_STATE
-                    self.state = GameBase.DAHAI_STATE
+                    self.prev_state = Const.NOTICE2_STATE
+                    self.state = Const.DAHAI_STATE
                     return True
 
             # チー決定
@@ -197,22 +197,22 @@ class GameRoutine:
                         player.chi_message(pais, pai)
 
                     self.dahai_decisions = dict()
-                    self.prev_state = GameBase.NOTICE2_STATE
-                    self.state = GameBase.DAHAI_STATE
+                    self.prev_state = Const.NOTICE2_STATE
+                    self.state = Const.DAHAI_STATE
                     return True
 
-            self.prev_state = GameBase.NOTICE2_STATE
-            self.state = GameBase.TSUMO_STATE
+            self.prev_state = Const.NOTICE2_STATE
+            self.state = Const.TSUMO_STATE
             return True
 
         # 和了り状態
-        elif self.state == GameBase.AGARI_STATE:
+        elif self.state == Const.AGARI_STATE:
             pass
 
         # 流局状態
-        elif self.state == GameBase.RYUKYOKU_STATE:
+        elif self.state == Const.RYUKYOKU_STATE:
             pass
 
         # 終局状態
-        elif self.state == GameBase.SYUKYOKU_STATE:
+        elif self.state == Const.SYUKYOKU_STATE:
             pass
