@@ -1,9 +1,7 @@
 import json
 
 from channels.generic.websocket import AsyncWebsocketConsumer
-from mahjong.game import Game
-from mahjong.human import Human
-from mahjong.kago import Kago
+from .game import Game
 
 
 class MahjongConsumer(AsyncWebsocketConsumer):
@@ -69,16 +67,7 @@ class MahjongConsumer(AsyncWebsocketConsumer):
     # start_gameだけはconsumerで
     async def start_game(self, mode):
         # GameにRoomに登録
-        self.game = Game()
-
-        # GameにPlayerを登録
-        self.game.add_player(Human(0))
-        self.game.add_player(Kago(1))
-        self.game.add_player(Kago(2))
-        self.game.add_player(Kago(3))
-
-        # GameにModeを設定
-        self.game.set_mode(mode)
+        self.game = Game(mode)
 
         # ゲーム開始
         self.game.start_game()
