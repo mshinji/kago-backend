@@ -85,6 +85,8 @@ class GameRoutine:
             who, pais = list(self.ankan_decisions.items())[0]
             if pais is not None:
                 self.players[who].ankan(pais)
+                self.players[who].open_dora()
+
                 for player in self.players:
                     player.ankan_message(pais)
                     player.open_dora_message()
