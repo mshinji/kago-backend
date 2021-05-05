@@ -23,11 +23,6 @@ class GameBase:
         self.scores = [25000, 25000, 25000, 25000]
 
     # 汎用関数
-    def open_kan_dora(self):
-        kan_dora = self.dora[self.n_dora]
-        self.n_dora += 1
-        return kan_dora
-
     def add_player(self, player):
         player.game = self
         self.players.append(player)

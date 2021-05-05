@@ -1,6 +1,4 @@
 import json
-import random
-import string
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 from mahjong.game import Game
@@ -9,15 +7,7 @@ from mahjong.kago import Kago
 
 
 class MahjongConsumer(AsyncWebsocketConsumer):
-    rooms = None
-
-    async def generate_token(self):
-        randlst = [random.choice(string.ascii_letters + string.digits) for i in range(30)]
-        return ''.join(randlst)
-
     async def connect(self):
-        if MahjongConsumer.rooms is None:
-            MahjongConsumer.rooms = {}
         await self.accept()
 
     async def disconnect(self, close_code):
@@ -26,17 +16,13 @@ class MahjongConsumer(AsyncWebsocketConsumer):
     async def send(self, data):
         data = json.dumps(data)
         print('send:', data)
-        print()
+
         await super().send(text_data=data)
 
     async def receive(self, text_data):
         data = json.loads(text_data)
         data_type = data['type']
         print('receive:', data)
-
-        if 'token' in data and data['token'] in MahjongConsumer.rooms:
-            self.game = MahjongConsumer.rooms.get(data.get('token'))
-            self.player = self.game.find_player(0)
 
         if data_type == 'ready':
             await self.start_game(data['mode'])
@@ -84,8 +70,6 @@ class MahjongConsumer(AsyncWebsocketConsumer):
     async def start_game(self, mode):
         # GameにRoomに登録
         self.game = Game()
-        self.token = await self.generate_token()
-        MahjongConsumer.rooms[self.token] = self.game
 
         # GameにPlayerを登録
         self.game.add_player(Human(0))
@@ -104,9 +88,7 @@ class MahjongConsumer(AsyncWebsocketConsumer):
         data = [
             {
                 'type': 'start_game',
-                'body': {
-                    'token': self.token
-                }
+                'body': {}
             }
         ]
         await self.send(data)
