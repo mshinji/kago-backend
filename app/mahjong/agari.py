@@ -99,8 +99,7 @@ class Agari:
 
                     han = sum(self.jokyo_yaku) + sum(self.zenbu_yaku) + sum(bubun_yaku)
                     if han == sum([self.jokyo_yaku[Agari.YAKU.index(yaku)] for yaku in ['ドラ', '裏ドラ', '赤ドラ']]):
-                        hu = -float('inf')
-                        han = -float('inf')
+                        continue
 
                     # ツモ符計算
                     # 喰い平和形
@@ -137,11 +136,12 @@ class Agari:
             self.zenbu_yaku = [self.zenbu_yaku[i] if 37 <= i <= 51 else 0 for i in range(0, 55)]
             self.bubun_yaku = [self.bubun_yaku[i] if 37 <= i <= 51 else 0 for i in range(0, 55)]
             han = sum(self.jokyo_yaku + self.zenbu_yaku + self.bubun_yaku)
-        else:
-            self.score_movements = [0, 0, 0, 0]
 
         # 点数変動計算
         score_movements = [0, 0, 0, 0]
+        if max == [0, 0]:
+            self.score_movements = score_movements
+            return
 
         ten = max[0] * (2 ** (max[1] + 2))
         if ten >= 2000:
