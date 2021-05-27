@@ -5,8 +5,8 @@ import chainer.links as L
 import numpy as np
 from chainer import serializers
 
-from mahjong.cnn import CNN
-from mahjong.player import Player
+from .cnn import CNN
+from .player import Player
 
 module_dir = os.path.dirname(__file__)
 
