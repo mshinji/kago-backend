@@ -139,7 +139,7 @@ class PlayerJudge:
         if len(set(pais)) != 3:
             # print('牌番号に同じものがある')
             return False
-        print('can_pon', pais)
+
         return True
 
     def can_chi(self, pais, pai):
@@ -178,5 +178,5 @@ class PlayerJudge:
         if len(set(pais)) != 3:
             # print('牌番号に同じものがある')
             return False
-        print('can_chi', pais)
+
         return True
