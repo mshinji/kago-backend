@@ -207,11 +207,15 @@ class GameRoutine:
 
         # 和了り状態
         elif self.state == Const.AGARI_STATE:
-            pass
+            if self.mode == Const.AUTO_MODE:
+                self.next_kyoku()
+                return True
 
         # 流局状態
         elif self.state == Const.RYUKYOKU_STATE:
-            pass
+            if self.mode == Const.AUTO_MODE:
+                self.next_kyoku()
+                return True
 
         # 終局状態
         elif self.state == Const.SYUKYOKU_STATE:
