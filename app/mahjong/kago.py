@@ -1,27 +1,20 @@
 import os
 from itertools import product
 
-import chainer.links as L
 import numpy as np
-from chainer import serializers
+from tensorflow.keras import models
 
-from .cnn import CNN
 from .player import Player
 
 module_dir = os.path.dirname(__file__)
 
 
 class Kago(Player):
-    DAHAI_NETWORK = L.Classifier(CNN(n_output=34))
-    RICHI_NETWORK = L.Classifier(CNN(n_output=2))
-    ANKAN_NETWORK = L.Classifier(CNN(n_output=2))
-    PON_NETWORK = L.Classifier(CNN(n_output=2))
-    CHI_NETWORK = L.Classifier(CNN(n_output=4))
-    serializers.load_npz(os.path.join(module_dir, 'networks/dahai.npz'), DAHAI_NETWORK)
-    serializers.load_npz(os.path.join(module_dir, 'networks/richi.npz'), RICHI_NETWORK)
-    serializers.load_npz(os.path.join(module_dir, 'networks/ankan.npz'), ANKAN_NETWORK)
-    serializers.load_npz(os.path.join(module_dir, 'networks/pon.npz'), PON_NETWORK)
-    serializers.load_npz(os.path.join(module_dir, 'networks/chi.npz'), CHI_NETWORK)
+    DAHAI_NETWORK = models.load_model(os.path.join(module_dir, 'networks/dahai.h5'))
+    RICHI_NETWORK = models.load_model(os.path.join(module_dir, 'networks/richi.h5'))
+    ANKAN_NETWORK = models.load_model(os.path.join(module_dir, 'networks/ankan.h5'))
+    PON_NETWORK = models.load_model(os.path.join(module_dir, 'networks/pon.h5'))
+    CHI_NETWORK = models.load_model(os.path.join(module_dir, 'networks/chi.h5'))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -89,12 +82,14 @@ class Kago(Player):
         row += zikaze
         row += last_dahai
 
-        x = []
-        for i in range(len(row) // 34):
-            xx = []
-            for j in range(34):
-                xx.append([1 if row[i * 34 + j] >= k else 0 for k in range(1, 5)])
-            x.append(xx)
+        # データ準備
+        row = list(map(int, row))
+        x = [[[0] * (len(row) // 34) for _ in range(4)] for _ in range(34)]
+        for c in range(len(row) // 34):
+            for w in range(4):
+                for h in range(34):
+                    if row[c * 34 + h] >= w:
+                        x[h][w][c] = 1
 
         x = np.array([x], np.float32)
         return x
@@ -150,7 +145,7 @@ class Kago(Player):
 
     def decide_ankan(self):
         x = self.make_input()
-        y = Kago.ANKAN_NETWORK.predictor(x)[0].array
+        y = Kago.ANKAN_NETWORK.predict(x)[0]
         mk, mv = None, -float('inf')
 
         for i in range(2):
@@ -170,13 +165,13 @@ class Kago(Player):
             return False
 
         x = self.make_input()
-        y = Kago.RICHI_NETWORK.predictor(x)[0].array
+        y = Kago.RICHI_NETWORK.predict(x)[0]
 
         return bool(y[1] > y[0])
 
     def decide_dahai(self):
         x = self.make_input()
-        y = Kago.DAHAI_NETWORK.predictor(x)[0].array
+        y = Kago.DAHAI_NETWORK.predict(x)[0]
         mk, mv = -1, -float('inf')
 
         for i in range(34):
@@ -197,7 +192,7 @@ class Kago(Player):
 
     def decide_pon(self):
         x = self.make_input()
-        y = Kago.PON_NETWORK.predictor(x)[0].array
+        y = Kago.PON_NETWORK.predict(x)[0]
         mk, mv = None, -float('inf')
 
         last_dahai = self.game.last_dahai
@@ -218,7 +213,7 @@ class Kago(Player):
 
     def decide_chi(self):
         x = self.make_input()
-        y = Kago.CHI_NETWORK.predictor(x)[0].array
+        y = Kago.CHI_NETWORK.predict(x)[0]
         mk, mv = None, -float('inf')
 
         last_dahai = self.game.last_dahai
