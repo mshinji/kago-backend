@@ -1,30 +1,9 @@
 from .const import Const
-from .human import Human
-from .kago import Kago
 
 
 class GameBase:
-    def __init__(self, mode):
-        self.mode = mode
-
-        # Player関連
-        self.players = []
-        if mode == Const.AUTO_MODE:
-            self.players.append(Kago(id=0, game=self))
-            self.players.append(Kago(id=1, game=self))
-            self.players.append(Kago(id=2, game=self))
-            self.players.append(Kago(id=3, game=self))
-        else:
-            self.players.append(Human(id=0, game=self))
-            self.players.append(Kago(id=1, game=self))
-            self.players.append(Kago(id=2, game=self))
-            self.players.append(Kago(id=3, game=self))
-
-        # 半荘関連
-        self.kyoku = 0
-        self.honba = 0
-        self.kyotaku = 0
-        self.scores = [25000, 25000, 25000, 25000]
+    def __init__(self):
+        pass
 
     # 汎用関数
     def find_player(self, player_id):

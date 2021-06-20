@@ -1,16 +1,38 @@
 from random import shuffle
 
 from .const import Const
+from .kago import Kago
+from .human import Human
 
 
 class GameAction:
-    def start_game(self):
+    def start_game(self, mode=Const.AUTO_MODE):
+        self.mode = mode
+
+        # Player関連
+        self.players = []
+        if mode == Const.AUTO_MODE:
+            self.players.append(Kago(id=0, game=self))
+            self.players.append(Kago(id=1, game=self))
+            self.players.append(Kago(id=2, game=self))
+            self.players.append(Kago(id=3, game=self))
+        else:
+            self.players.append(Human(id=0, game=self))
+            self.players.append(Kago(id=1, game=self))
+            self.players.append(Kago(id=2, game=self))
+            self.players.append(Kago(id=3, game=self))
+
+        # 半荘関連
+        self.kyoku = 0
+        self.honba = 0
+        self.kyotaku = 0
+        self.scores = [25000, 25000, 25000, 25000]
         shuffle(self.players)
         for i, player in enumerate(self.players):
             player.position = i
 
-        self.state = Const.KYOKU_START_STATE
         self.prev_state = Const.INITIAL_STATE
+        self.state = Const.KYOKU_START_STATE
 
     def start_kyoku(self):
         # 各プレイヤーの手牌・河・副露の初期化
@@ -116,7 +138,8 @@ class GameAction:
         self.chi_decisions = dict()
 
         # 状態
-        self.prev_state, self.state = self.state, Const.KYOKU_START_STATE
+        self.prev_state = self.state
+        self.state = Const.KYOKU_START_STATE
 
     def tsumoho(self, player):
         if player.can_tsumoho():

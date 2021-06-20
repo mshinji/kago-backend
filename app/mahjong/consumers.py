@@ -1,6 +1,7 @@
 import json
 
 from channels.generic.websocket import AsyncWebsocketConsumer
+
 from .game import Game
 
 
@@ -22,8 +23,11 @@ class MahjongConsumer(AsyncWebsocketConsumer):
         data_type = data['type']
         print('receive:', data)
 
-        if data_type == 'ready':
-            await self.start_game(data['mode'])
+        if data_type == 'start_game':
+            self.game = Game()
+            self.game.start_game(data['mode'])
+            self.player = self.game.find_player(0)
+            await self.next()
 
         if data_type == 'tsumoho':
             self.game.tsumoho(self.player)
@@ -63,24 +67,6 @@ class MahjongConsumer(AsyncWebsocketConsumer):
 
         if data_type == 'next':
             await self.next()
-
-    # start_gameだけはconsumerで
-    async def start_game(self, mode):
-        # GameにRoomに登録
-        self.game = Game(mode)
-
-        # ゲーム開始
-        self.game.start_game()
-        self.player = self.game.find_player(0)
-
-        # データ送信
-        data = [
-            {
-                'type': 'start_game',
-                'body': {}
-            }
-        ]
-        await self.send(data)
 
     async def next(self):
         while self.game.next():
