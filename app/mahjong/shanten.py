@@ -8,9 +8,8 @@ pickle_path = os.path.join(module_dir, 'shanten_table.pickle')
 with open(pickle_path, 'rb') as f:
     shanten_table = pickle.load(f)
 
+
 # 向聴テーブルからデータを取得
-
-
 def get_shanten_from_table(tehai):
     # 10進法で表現された手牌の生成
     tehai_decimal = 0
@@ -34,9 +33,8 @@ def calc_shanten(tehai, n_huro):
 
     return min([min_shanten, calc_shanten7(tehai), calc_shanten13(tehai)])
 
+
 # 一般手の一時的な向聴数の計算
-
-
 def get_temporary_shanten(tehai, n_huro):
     b = (13 - sum(tehai) - n_huro * 3) // 3
     m = get_shanten_from_table(tehai[0:9])
@@ -66,9 +64,8 @@ def get_temporary_shanten(tehai, n_huro):
 
     return min_shanten
 
+
 # 七対子の向聴数の計算
-
-
 def calc_shanten7(tehai):
     n_toitsu, n_tanki = 0, 0
 
@@ -83,9 +80,8 @@ def calc_shanten7(tehai):
     else:
         return 6 - n_toitsu
 
+
 # 国士無双の向聴数の計算
-
-
 def calc_shanten13(tehai):
     n_yaochu, has_toitsu = 0, 0
     yaochu = [0, 8, 9, 17, 18, 26, 27, 28, 29, 30, 31, 32, 33]
@@ -98,9 +94,8 @@ def calc_shanten13(tehai):
 
     return 13 - n_yaochu - has_toitsu
 
+
 # 牌番号がny以上の有効牌を返す関数
-
-
 def get_yuko(jun, rest, n_huro=0, ny=0):
     yuko = []
 
@@ -114,38 +109,3 @@ def get_yuko(jun, rest, n_huro=0, ny=0):
             jun[i] -= 1
 
     return yuko
-
-# 牌番号がnm以上の無効牌を返す関数
-
-
-def get_muko(jun, nm):
-    muko = []
-
-    n_shanten = calc_shanten(jun)
-
-    for i in range(nm, 34):
-        if jun[i] > 0:
-            jun[i] -= 1
-            if calc_shanten(jun) == n_shanten:
-                muko.append(i)
-            jun[i] += 1
-
-    return muko
-
-
-# 待ち牌を返す関数
-def get_machi(jun, rest, n_huro=0):
-    machi = []
-
-    for i in range(34):
-        if rest[i] > 0:
-            jun[i] += 1
-            if calc_shanten(jun, n_huro) == -1:
-                machi.append(i)
-            elif n_huro == 0 and calc_shanten7(jun) == -1:
-                machi.append(i)
-            elif n_huro == 0 and calc_shanten13(jun) == -1:
-                machi.append(i)
-            jun[i] -= 1
-
-    return machi
