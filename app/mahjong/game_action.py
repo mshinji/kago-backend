@@ -6,13 +6,16 @@ from .human import Human
 
 
 class GameAction:
-    def start_game(self, mode=Const.AUTO_MODE):
+    def start_game(self, mode=Const.AUTO_MODE, player=None):
         self.mode = mode
 
         # Player関連
         self.players = []
         if mode == Const.AUTO_MODE:
-            self.players.append(Kago(id=0, game=self))
+            if player is not None:
+                self.players.append(player)
+            else:
+                self.players.append(Kago(id=0, game=self))
             self.players.append(Kago(id=1, game=self))
             self.players.append(Kago(id=2, game=self))
             self.players.append(Kago(id=3, game=self))
