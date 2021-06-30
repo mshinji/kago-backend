@@ -22,7 +22,8 @@ class GameRoutine:
             for player in self.players:
                 player.start_kyoku_message()
 
-            self.prev_state, self.state = self.state, Const.TSUMO_STATE
+            self.prev_state = self.state
+            self.state = Const.TSUMO_STATE
             return True
 
         # ツモ状態
@@ -54,7 +55,7 @@ class GameRoutine:
 
             # AIの選択を格納
             player = self.players[self.teban]
-            if player.type == 'kago':
+            if player.type == 'kago' or player.type == 'dqn':
                 self.tsumoho_decisions[player.position] = player.decide_tsumoho()
                 self.richi_decisions[player.position] = player.decide_richi()
                 self.ankan_decisions[player.position] = player.decide_ankan()
@@ -143,7 +144,7 @@ class GameRoutine:
 
             # AIの選択を格納
             for player in self.players:
-                if player.type == 'kago':
+                if player.type == 'kago' or player.type == 'dqn':
                     self.ronho_decisions[player.position] = player.decide_ronho()
                     self.pon_decisions[player.position] = [player.decide_pon(), self.last_dahai]
                     self.chi_decisions[player.position] = [player.decide_chi(), self.last_dahai]
