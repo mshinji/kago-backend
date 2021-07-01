@@ -29,8 +29,6 @@ class GameRoutine:
         # ツモ状態
         elif self.state == Const.TSUMO_STATE:
             if len(self.yama) == 0:
-                for player in self.players:
-                    player.ryukyoku_message()
                 self.prev_state = Const.TSUMO_STATE
                 self.state = Const.RYUKYOKU_STATE
                 return True
@@ -214,6 +212,10 @@ class GameRoutine:
 
         # 流局状態
         elif self.state == Const.RYUKYOKU_STATE:
+            ryukyoku = self.ryukyoku()
+            for player in self.players:
+                player.ryukyoku_message(ryukyoku)
+
             if self.mode == Const.AUTO_MODE:
                 self.next_kyoku()
                 return True

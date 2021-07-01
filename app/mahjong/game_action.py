@@ -186,6 +186,42 @@ class GameAction:
             self.pon_decisions[player.position] = [None, None]
             self.chi_decisions[player.position] = [pais, pai]
 
+    def ryukyoku(self):
+        is_tenpais = []
+        for player in self.players:
+            is_tenpais.append(bool(player.calc_shanten() <= 0))
+
+        n_tenpai = is_tenpais.count(True)
+        scores = []
+        score_movements = []
+        for i, player in enumerate(self.players):
+            if is_tenpais[i] and n_tenpai == 1:
+                score_movements.append(3000)
+            if is_tenpais[i] and n_tenpai == 2:
+                score_movements.append(1500)
+            if is_tenpais[i] and n_tenpai == 3:
+                score_movements.append(1000)
+            if not is_tenpais[i] and n_tenpai == 1:
+                score_movements.append(-1000)
+            if not is_tenpais[i] and n_tenpai == 2:
+                score_movements.append(-1500)
+            if not is_tenpais[i] and n_tenpai == 3:
+                score_movements.append(-3000)
+            if n_tenpai == 0 or n_tenpai == 4:
+                score_movements.append(0)
+
+            self.scores[i] += score_movements[i]
+            scores.append(self.scores[i])
+
+        self.honba += 1
+        if not is_tenpais[self.kyoku % 4]:
+            self.kyoku += 1
+
+        return {
+            'scores': scores,
+            'scoreMovements': score_movements
+        }
+
     def next_kyoku(self):
         if self.state == Const.AGARI_STATE:
             self.state = Const.KYOKU_START_STATE
