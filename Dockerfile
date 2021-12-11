@@ -1,8 +1,8 @@
-FROM python:3
+FROM python:3.9
 
 ADD ./app /app
 WORKDIR /app
-RUN python -m pip install --upgrade pip && pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 
