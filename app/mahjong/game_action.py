@@ -29,10 +29,10 @@ class GameAction:
         self.kyoku = 0
         self.honba = 0
         self.kyotaku = 0
-        self.scores = [25000, 25000, 25000, 25000]
         shuffle(self.players)
         for i, player in enumerate(self.players):
             player.position = i
+            player.score = 25000
 
         self.prev_state = Const.INITIAL_STATE
         self.state = Const.KYOKU_START_STATE
@@ -210,8 +210,8 @@ class GameAction:
             if n_tenpai == 0 or n_tenpai == 4:
                 score_movements.append(0)
 
-            self.scores[i] += score_movements[i]
-            scores.append(self.scores[i])
+            player.score += score_movements[i]
+            scores.append(player.score)
 
         self.honba += 1
         if not is_tenpais[self.kyoku % 4]:

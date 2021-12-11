@@ -11,7 +11,7 @@ class GameRoutine:
 
         # 局開始状態
         if self.state == Const.KYOKU_START_STATE:
-            if self.kyoku >= 8 or any(bool(self.scores[i] < 0) for i in range(4)):
+            if self.kyoku >= 8 or any(bool(player.score < 0) for player in self.players):
                 for player in self.players:
                     player.syukyoku_message()
                 self.prev_state = Const.KYOKU_START_STATE

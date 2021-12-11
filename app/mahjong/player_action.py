@@ -25,8 +25,8 @@ class PlayerAction:
                 uradoras.append(self.game.make_dummy(self.game.dora[i + 5]))
 
         score_movements = agari.score_movements
-        for i, score_movement in enumerate(score_movements):
-            self.game.scores[i] += score_movement
+        for player, score_movement in zip(self.game.players, score_movements):
+            player.score += score_movement
 
         self.game.kyotaku = 0
         if self.position == self.game.kyoku % 4:
@@ -40,7 +40,7 @@ class PlayerAction:
             'yakus': yakus,
             'doras': doras,
             'uradoras': uradoras,
-            'scores': self.game.scores,
+            'scores': [player.score for player in self.game.players],
             'scoreMovements': score_movements,
         }
 
@@ -68,7 +68,7 @@ class PlayerAction:
         self.game.pc += 1
 
     def richi_complete(self):
-        self.game.scores[self.position] -= 1000
+        self.score -= 1000
         self.is_richi_complete = True
         self.game.kyotaku += 1
 
@@ -98,8 +98,8 @@ class PlayerAction:
                 uradoras.append(self.game.make_dummy(self.game.dora[i + 5]))
 
         score_movements = agari.score_movements
-        for i, score_movement in enumerate(score_movements):
-            self.game.scores[i] += score_movement
+        for player, score_movement in zip(self.game.players, score_movements):
+            player.score += score_movement
 
         self.game.kyotaku = 0
         if self.position == self.game.kyoku % 4:
@@ -113,7 +113,7 @@ class PlayerAction:
             'yakus': yakus,
             'doras': doras,
             'uradoras': uradoras,
-            'scores': self.game.scores,
+            'scores': [player.score for player in self.game.players],
             'scoreMovements': score_movements,
         }
 
@@ -178,7 +178,7 @@ class PlayerAction:
 
         dora = self.game.dora[:self.game.n_dora] + self.game.make_dummies(self.game.dora[self.game.n_dora:5])
 
-        scores = [self.game.scores[i] for i, _ in self.prange()]
+        scores = [player.score for _, player in self.prange()]
         richis = [player.is_richi_complete for _, player in self.prange()]
         kazes = ['東南西北'[(i - self.game.kyoku) % 4] for i, _ in self.prange()]
         rest = len(self.game.yama)

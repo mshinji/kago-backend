@@ -52,7 +52,7 @@ class PlayerJudge:
         if len(huro_types) - huro_types.count('ankan') != 0:
             # print('門前じゃない')
             return False
-        if self.game.scores[self.position] < 1000:
+        if self.score < 1000:
             # print('1000点ない')
             return False
         if self.calc_shanten(remove=[dahai]) > 0:

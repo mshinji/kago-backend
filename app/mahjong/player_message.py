@@ -51,7 +51,7 @@ class PlayerMessage:
         self.actions.append({
             'type': 'richi_complete_message',
             'body': {
-                'scores': [self.game.scores[i % 4] for i, _ in self.prange()],
+                'scores': [player.score for _, player in self.prange()],
                 'richis': [player.is_richi_complete for _, player in self.prange()]
             }
         })
@@ -133,7 +133,7 @@ class PlayerMessage:
 
     # TODO トップの人にリーチ棒を
     def syukyoku_message(self):
-        scores = [self.game.scores[i] for i in range(4)]
+        scores = [player.score for player in self.game.players]
         order_scores = sorted(scores, reverse=True)
         ranks = [order_scores.index(scores[i]) + 1 for i in range(4)]
 
