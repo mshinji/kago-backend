@@ -55,13 +55,18 @@ class Kago(Player):
             if player.richi_pai is not None:
                 richi[i][player.richi_pai // 4] = 4
 
-        # 場風
-        bakaze = [0] * 34
-        bakaze[27 + self.game.kyoku // 4] = 4
+        # 局数
+        kyoku = [0] * 34
+        kyoku[self.game.kyoku] = 4
 
-        # 自風
-        zikaze = [0] * 34
-        zikaze[27 + (self.position - self.game.kyoku) % 4] = 4
+        # 座順
+        zajun = [0] * 34
+        zajun[self.position] = 4
+
+        # 点数状況
+        ten = [[0] * 34 for _ in range(4)]
+        for i, (_, player) in enumerate(self.prange()):
+            ten[i][min(33, self.game.scores[i] // 200)] = 4
 
         # 最後の打牌
         last_dahai = [0] * 34
@@ -78,8 +83,10 @@ class Kago(Player):
         row += dora
         for i in range(3):
             row += richi[i]
-        row += bakaze
-        row += zikaze
+        row += kyoku
+        row += zajun
+        for i in range(4):
+            row += ten[i]
         row += last_dahai
 
         # データ準備
