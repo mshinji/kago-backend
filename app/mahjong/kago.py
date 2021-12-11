@@ -66,7 +66,7 @@ class Kago(Player):
         # 点数状況
         ten = [[0] * 34 for _ in range(4)]
         for i, (_, player) in enumerate(self.prange()):
-            ten[i][min(33, self.game.scores[i] // 200)] = 4
+            ten[i][min(33, player.score // 2000)] = 4
 
         # 最後の打牌
         last_dahai = [0] * 34
