@@ -21,82 +21,70 @@ class Kago(Player):
         self.type = 'kago'
 
     def make_input(self):
+        row = []
+
         # 手牌
         tehai = [0] * 34
         for pai in self.tehai:
             tehai[pai // 4] += 1
+        for i in range(1, 4 + 1):
+            row += [1 if tehai[j] >= i else 0 for j in range(34)]
 
         # 赤
-        aka = [0] * 34
-        for pai in self.tehai:
-            if pai in [16, 52, 88]:
-                aka[pai // 4] = 4
+        row += [1] * 34 if 16 in self.tehai else [0] * 34
+        row += [1] * 34 if 52 in self.tehai else [0] * 34
+        row += [1] * 34 if 88 in self.tehai else [0] * 34
 
         # 河
-        kawa = [[0] * 34 for _ in range(4)]
-        for i, (_, player) in enumerate(self.prange()):
-            for pai in player.kawa:
-                kawa[i][pai // 4] += 1
+        for _, player in self.prange():
+            for i in range(20):
+                tmp = [0] * 34
+                if i < len(player.kawa):
+                    tmp[player.kawa[i] // 4] = 1
+                row += tmp
 
         # 副露
-        huro = [[0] * 34 for _ in range(4)]
-        for i, (_, player) in enumerate(self.prange()):
+        for _, player in self.prange():
+            huro = [0] * 34
             for h in player.huro:
                 for pai in h['pais']:
-                    huro[i][pai // 4] += 1
+                    huro[pai // 4] += 1
+            for i in range(1, 4 + 1):
+                row += [1 if huro[j] >= i else 0 for j in range(34)]
+
         # ドラ
         dora = [0] * 34
         for pai in self.game.dora[:self.game.n_dora]:
             dora[pai // 4] += 1
+        for i in range(1, 4 + 1):
+            row += [1 if dora[j] >= i else 0 for j in range(34)]
 
         # リーチ
-        richi = [[0] * 34 for _ in range(3)]
-        for i, (_, player) in enumerate(self.prange()[1:]):
+        for _, player in self.prange():
             if player.richi_pai is not None:
-                richi[i][player.richi_pai // 4] = 4
+                row += [1] * 34
+            else:
+                row += [0] * 34
 
         # 局数
-        kyoku = [0] * 34
-        kyoku[self.game.kyoku] = 4
+        for i in range(12):
+            if i == min(self.game.kyoku, 11):
+                row += [1] * 34
+            else:
+                row += [0] * 34
 
         # 座順
-        zajun = [0] * 34
-        zajun[self.position] = 4
-
-        # 点数状況
-        ten = [[0] * 34 for _ in range(4)]
-        for i, (_, player) in enumerate(self.prange()):
-            ten[i][min(33, player.score // 2000)] = 4
-
-        # 最後の打牌
-        last_dahai = [0] * 34
-        if self.game.last_dahai is not None:
-            last_dahai[self.game.last_dahai // 4] = 4
-
-        row = []
-        row += tehai
-        row += aka
         for i in range(4):
-            row += kawa[i]
-        for i in range(4):
-            row += huro[i]
-        row += dora
-        for i in range(3):
-            row += richi[i]
-        row += kyoku
-        row += zajun
-        for i in range(4):
-            row += ten[i]
-        row += last_dahai
+            if i == self.position:
+                row += [1] * 34
+            else:
+                row += [0] * 34
 
         # データ準備
-        row = list(map(int, row))
-        x = [[[0] * (len(row) // 34) for _ in range(4)] for _ in range(34)]
-        for c in range(len(row) // 34):
-            for w in range(4):
-                for h in range(34):
-                    if row[c * 34 + h] >= w:
-                        x[h][w][c] = 1
+        n_channel = len(row) // 34
+        x = [[[0] * n_channel for _ in range(34)]]
+        for k, v in enumerate(row):
+            x[0][k % 34][k // 34] = v
 
         x = np.array([x], np.float32)
         return x
