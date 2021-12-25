@@ -77,7 +77,7 @@ class GameRoutine:
                     player.tsumoho_message(tsumoho)
 
                 self.prev_state = Const.NOTICE1_STATE
-                self.state = Const.AGARI_STATE
+                self.state = Const.NOTICE3_STATE
                 return True
 
             # 暗槓の決定
@@ -165,7 +165,7 @@ class GameRoutine:
                     player.ronho_message(ronho)
 
                 self.prev_state = Const.NOTICE2_STATE
-                self.state = Const.AGARI_STATE
+                self.state = Const.NOTICE3_STATE
                 return True
 
             # ロンじゃなければリーチ成立
@@ -204,8 +204,8 @@ class GameRoutine:
             self.state = Const.TSUMO_STATE
             return True
 
-        # 和了り状態
-        elif self.state == Const.AGARI_STATE:
+        # 通知3状態受信状態(和了や流局から次局へ)
+        elif self.state == Const.NOTICE3_STATE:
             if self.mode == Const.AUTO_MODE:
                 self.next_kyoku()
                 return True
@@ -216,9 +216,9 @@ class GameRoutine:
             for player in self.players:
                 player.ryukyoku_message(ryukyoku)
 
-            if self.mode == Const.AUTO_MODE:
-                self.next_kyoku()
-                return True
+            self.prev_state = Const.RYUKYOKU_STATE
+            self.state = Const.NOTICE3_STATE
+            return True
 
         # 終局状態
         elif self.state == Const.SYUKYOKU_STATE:

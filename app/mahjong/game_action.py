@@ -223,7 +223,5 @@ class GameAction:
         }
 
     def next_kyoku(self):
-        if self.state == Const.AGARI_STATE:
-            self.state = Const.KYOKU_START_STATE
-        elif self.state == Const.RYUKYOKU_STATE:
+        if self.state == Const.NOTICE3_STATE:
             self.state = Const.KYOKU_START_STATE
