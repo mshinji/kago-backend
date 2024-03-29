@@ -27,7 +27,7 @@ SECRET_KEY = 'alpn!t*sbi*qsyis9m37ximzjnrn=6zl_2&njyd#j_s8@3)h@@'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'kago-backend-app.herokuapp.com'
+    'kago-backend-45858670ab74.herokuapp.com'
 ]
 
 
