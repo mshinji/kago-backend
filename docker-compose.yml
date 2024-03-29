@@ -3,9 +3,7 @@ services:
   web:
     build: .
     command: >
-      bash -c " pip3 install -r requirements.txt &&
-                pip3 freeze > requirements.txt &&
-                python3 manage.py runserver 0.0.0.0:8000"
+      bash -c "python3 manage.py runserver 0.0.0.0:8000"
     depends_on:
       - redis
     environment:
@@ -15,7 +13,6 @@ services:
     tty: true
     volumes:
       - ./app:/app
-      - pip_modules:/usr/local/lib/python3.9/site-packages
   redis:
     image: redis:6-alpine
     ports:
@@ -23,5 +20,4 @@ services:
     volumes:
       - redis_data:/data
 volumes:
-  pip_modules:
   redis_data:
